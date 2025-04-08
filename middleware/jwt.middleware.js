@@ -1,11 +1,11 @@
 
-import jwt from 'jsonwebtoken'; 
-import express from 'express' ;
+import jwt from 'jsonwebtoken'
+import express from 'express' 
 
 const middleware = express.Router();
 
 const verifyJWT = (req,res,next )  => {
-    let token = req.headers['authorization']; 
+    let token = req.headers['authorization']
     
     if(token){
         token = token.split(' ')[1] ;
