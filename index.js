@@ -17,13 +17,13 @@ app.use(cors())
 app.use('/usuario', usuario)
 
 // Ruta Prueba
-app.get('/', (req,res) => {
+app.get('/', (req, res) => {
     res.send(`API Dragon's Treasure`)
 })
 
 // Manejo de errores
 app.use((err, req, res, next) => {
-    console.error(err,stack)
+    console.error(err.stack)
     res.status(500).json({ error: 'Error interno del servidor.'})
 })
 
