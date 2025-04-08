@@ -3,11 +3,11 @@ import express from 'express'
 import cors from 'cors'
 import multer from 'multer'
 
-const app = epress()
+const app = express()
 const PORT = process.env.PORT || 3000
 
 app.use(express.json())
-app.use(multer.array())
+app.use(multer().array())
 app.use(cors())
 
 

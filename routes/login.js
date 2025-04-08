@@ -2,9 +2,9 @@
 import express from 'express'
 const router = express.Router()
 
-import { doLogin} from '../controllers/login.controller.js'
+import { doLogin} from '../controllers/users.controller.js'
 
-router.post('/login',doLogin)
+router.post('/usuario',doLogin)
 
 export { router } 
 
