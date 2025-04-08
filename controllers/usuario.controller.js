@@ -1,5 +1,5 @@
 
-import { pool } from "../helpers/mysql-config";
+import { pool } from "../helpers/mysql-config.js";
 
 const getUser = (req,res) => {
     const {id} = req.params

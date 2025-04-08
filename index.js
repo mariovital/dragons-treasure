@@ -4,7 +4,7 @@ import cors from 'cors'
 import multer from 'multer'
 
 
-import {router as usuario} from './routes/usuario.js'
+import { router as usuario } from './routes/usuario.js'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -16,6 +16,7 @@ app.use(cors())
 // Rutas
 app.use('/usuario', usuario)
 
+// Ruta Prueba
 app.get('/', (req,res) => {
     res.send(`API Dragon's Treasure`)
 })
