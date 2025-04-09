@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 // Import decorative components
-import BlueCircle from '../components/BlueCircle.';
+import BlueCircle from '../components/BlueCircle';
 import YellowWave from '../components/YellowWave';
 import DotPattern from '../components/DotPattern';
 
