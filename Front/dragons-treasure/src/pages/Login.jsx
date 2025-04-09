@@ -49,18 +49,19 @@ const Login = () => {
           className="absolute -right-40 top-25 w-60 h-64 object-contain z-0" 
         />
         
-        {/* Yellow dot pattern - positioned at bottom right of card */}
+        {/* Yellow dot pattern - adjusted positioning and size */}
         <img 
           src={yellowDotsImg} 
           alt="" 
-          className="absolute right-0 bottom-0 w-36 h-36 object-contain z-0" 
+          className="absolute -right-11 bottom-0 w-48 h-48 object-contain z-0 translate-x-1/4 translate-y-1/4" 
         />
         
-        {/* Yellow wavy line - positioned at bottom left of card */}
+        {/* Yellow wavy line - increased size and adjusted position to match Figma */}
         <img 
           src={yellowWaveImg} 
           alt="" 
-          className="absolute -left-16 bottom-0 w-24 h-48 object-contain z-0" 
+          className="absolute -left-28 bottom-16 w-48 h-48 object-contain z-0"
+          style={{ transform: 'rotate(30deg)' }}
         />
 
         {/* Login card */}
