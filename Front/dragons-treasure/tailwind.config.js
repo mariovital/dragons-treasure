@@ -21,6 +21,12 @@ export default {
       backdropBlur: {
         'md': '10px',
       },
+      backgroundImage: {
+        'blue-circle': "url('/src/assets/images/blue-circle.png')",
+        'blue-wave': "url('/src/assets/images/blue-wave.png')",
+        'yellow-dots': "url('/src/assets/images/yellow-dots.png')",
+        'yellow-wave': "url('/src/assets/images/yellow-wave.png')",
+      },
     },
   },
   plugins: [],
