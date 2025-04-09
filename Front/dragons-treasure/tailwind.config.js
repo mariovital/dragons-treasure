@@ -16,7 +16,7 @@ export default {
         success: '#10B981',
       },
       fontFamily: {
-        sans: ['Inter', 'SF Pro Display', 'system-ui', 'sans-serif'],
+        sans: ['"SF Mono"', 'monospace'],
       },
       backdropBlur: {
         'md': '10px',

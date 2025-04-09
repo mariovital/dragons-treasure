@@ -4,10 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Replace Inter font with SF Mono -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-face/1.0.0/sf-mono/sf-mono.css" integrity="sha512-..." crossorigin="anonymous" />
     <title>Aulify - Login</title>
+    <style>
+      /* Fallback for SF Mono if CDN fails */
+      @font-face {
+        font-family: 'SF Mono';
+        src: local('SF Mono');
+        font-weight: normal;
+        font-style: normal;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
