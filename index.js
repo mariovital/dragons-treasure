@@ -5,6 +5,7 @@ import multer from 'multer'
 
 
 import { router as usuario } from './routes/usuario.js'
+import { router as estadistica } from './routes/estadistica.js'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -15,6 +16,7 @@ app.use(cors())
 
 // Rutas
 app.use('/usuario', usuario)
+app.use('/estadistica', estadistica)
 
 // Ruta Prueba
 app.get('/', (req, res) => {

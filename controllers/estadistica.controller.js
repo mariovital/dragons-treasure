@@ -1,5 +1,4 @@
 
-
 import { pool } from "../helpers/mysql-config.js"
 
 const getStat = async (req, res) => {
@@ -20,5 +19,4 @@ const getStat = async (req, res) => {
     }
 }
 
-export { getUser };
-
+export { getStat };
