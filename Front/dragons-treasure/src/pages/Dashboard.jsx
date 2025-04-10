@@ -1,306 +1,263 @@
+
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import TopAssetBar from '../components/dashboard/TopAssetBar';
 
-// Importamos los mismos assets que usamos en Login
+// Import decorative assets for additional elements
 import blueCircleImg from '../assets/images/blue_circle.png';
 import blueWaveImg from '../assets/images/blue_line.png';
 import yellowDotsImg from '../assets/images/yellow_dots.png';
 import yellowWaveImg from '../assets/images/yellow_line.png';
+
+// Import logo and navigation icons
 import aulifyLogo from '../assets/images/Aulify_Logo.png';
-import aulifyLogoWhite from '../assets/images/Aulify_Logo_White.png';
-// Importamos los íconos para la navegación
 import dashboardIcon from '../assets/images/Dashboard_Logo.png';
 import estadisticasIcon from '../assets/images/Estadisticas_Logo.png';
 import configuracionIcon from '../assets/images/Configuracion_Logo.png';
 import darkModeIcon from '../assets/images/DarkMode_Logo.png';
 import salirIcon from '../assets/images/Salir_Logo.png';
 
-// Datos de ejemplo para el gráfico
-const timeData = [
-  { day: 'Lunes', hours: 1 },
-  { day: 'Martes', hours: 2.5 },
-  { day: 'Miércoles', hours: 1.2 },
-  { day: 'Jueves', hours: 0.5 },
-  { day: 'Viernes', hours: 5 },
-  { day: 'Sábado', hours: 2.5 },
-  { day: 'Domingo', hours: 7 },
-];
-
-// Datos de ejemplo para las últimas partidas
-const recentGames = [
-  { time: '1:44:10', status: '🏆' },
-  { time: '2:30:22', status: '❌' },
-  { time: '3:05:50', status: '❌' },
-  { time: '1:50:20', status: '🥈' },
-  { time: '2:00:40', status: '🥉' },
-];
-
-// Datos de ejemplo para el leaderboard
-const leaderboardData = [
-  { name: 'Luan', time: '1:44:10', medal: '🏆' },
-  { name: 'Sofí', time: '1:44:10', medal: '🥈' },
-  { name: 'Diana', time: '1:44:10', medal: '🥉' },
-  { name: 'Santiago', time: '1:44:10', medal: '⚫' },
-  { name: 'Hugo', time: '1:44:10', medal: '⚫' },
-];
+// Import chart components
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Dashboard = () => {
   const { darkMode, toggleDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState('dashboard');
 
+  // Sample data for the time played chart
+  const timePlayedData = [
+    { day: 'Lunes', hours: 0.5 },
+    { day: 'martes', hours: 2.5 },
+    { day: 'miércoles', hours: 1.5 },
+    { day: 'jueves', hours: 0.5 },
+    { day: 'viernes', hours: 4.8 },
+    { day: 'sábado', hours: 2.5 },
+    { day: 'domingo', hours: 7 },
+  ];
+
+  // Sample data for recent games
+  const recentGames = [
+    { medal: '🥇', time: '1:44:10' },
+    { medal: '❌', time: '2:30:22' },
+    { medal: '❌', time: '3:05:50' },
+    { medal: '🥈', time: '1:50:20' },
+    { medal: '🥉', time: '2:00:40' },
+  ];
+
+  // Sample data for leaderboard
+  const leaderboardData = [
+    { medal: '🥇', time: '1:44:10', name: 'Luan' },
+    { medal: '🥈', time: '1:44:10', name: 'Sofí' },
+    { medal: '🥉', time: '1:44:10', name: 'Diana' },
+    { medal: '➍', time: '1:44:10', name: 'Santiago' },
+    { medal: '➎', time: '1:44:10', name: 'Hugo' },
+  ];
+
   return (
-    <div className={`h-screen flex ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'} relative overflow-hidden`}>
-      {/* Contenedor para elementos decorativos de fondo - reposicionados según el mockup */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Elementos decorativos distribuidos según el mockup */}
-        <img 
-          src={blueWaveImg} 
-          alt="" 
-          className="absolute top-10 left-1/4 w-32 h-32 object-contain opacity-80" 
-        />
-        <img 
-          src={blueCircleImg} 
-          alt="" 
-          className="absolute top-4 right-4 w-24 h-24 object-contain opacity-80" 
-        />
-        <img 
-          src={yellowDotsImg} 
-          alt="" 
-          className="absolute top-16 right-1/4 w-20 h-20 object-contain opacity-70" 
-        />
-        <img 
-          src={yellowWaveImg} 
-          alt="" 
-          className="absolute top-40 left-1/3 w-24 h-24 object-contain opacity-70 transform rotate-45" 
-        />
+    <div className="w-full bg-white text-gray-800 min-h-screen">
+      {/* Decorative background with TopAssetBar */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none bg-white">
+        {/* TopAssetBar */}
+        <div className="absolute top-0 left-0 w-full z-0">
+          <TopAssetBar />
+        </div>
         
-        {/* Elementos decorativos adicionales */}
-        <img 
-          src={blueCircleImg} 
-          alt="" 
-          className="absolute bottom-20 right-10 w-40 h-40 object-contain opacity-60" 
-        />
-        <img 
-          src={yellowWaveImg} 
-          alt="" 
-          className="absolute bottom-40 left-10 w-32 h-32 object-contain opacity-70 transform -rotate-45" 
-        />
+        {/* Additional decorative elements */}
+        <img src={yellowDotsImg} alt="" className="absolute top-32 right-1/4 w-24 h-24 object-contain opacity-70" />
+        <img src={blueCircleImg} alt="" className="absolute top-40 right-10 w-40 h-40 object-contain opacity-60" />
+        <img src={yellowWaveImg} alt="" className="absolute bottom-20 left-1/3 w-32 h-32 object-contain opacity-70 transform rotate-90" />
+        <img src={blueWaveImg} alt="" className="absolute top-60 left-20 w-36 h-36 object-contain opacity-70" />
       </div>
       
-      {/* Sidebar - estilo actualizado para parecerse más al mockup de Figma */}
-      <div className={`w-64 ${darkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white shadow-md'} p-6 flex flex-col z-10 relative rounded-3xl mx-4 my-4`}>
-        {/* Logo - usando la imagen agregada */}
-        <div className="mb-8 flex justify-center">
-          <div className="h-10 w-24 flex items-center justify-center">
-            <img 
-              src={darkMode ? aulifyLogoWhite : aulifyLogo} 
-              alt="Aulify" 
-              className="h-full object-contain" 
-            />
-          </div>
-        </div>
+      {/* Main content wrapper - Using CSS Grid */}
+      <div className="relative min-h-screen grid grid-cols-[290px_1fr] bg-transparent">
+        {/* Sidebar - Always visible for desktop */}
+        <div className="z-40">
+          <div className="h-screen py-6 px-8 flex flex-col rounded-tr-3xl rounded-br-3xl glass">
+            {/* Logo */}
+            <div className="mb-10 flex justify-center">
+              <div className="h-12 w-32 flex items-center justify-center">
+                <img 
+                  src={aulifyLogo} 
+                  alt="Aulify" 
+                  className="h-full object-contain" 
+                />
+              </div>
+            </div>
 
-        {/* User welcome section - ajustado para parecerse al mockup */}
-        <div className="mb-12 flex flex-col items-center text-center">
-          <div className="w-16 h-16 mb-2 relative">
-            {/* Círculo amarillo de fondo */}
-            <div className="w-full h-full bg-primary-yellow rounded-full absolute"></div>
-            {/* Avatar del ratón con queso como en el mockup */}
-            <div className="w-full h-full flex items-center justify-center relative">
-              <span className="text-2xl">🐭</span>
+            {/* User welcome section */}
+            <div className="mb-14 flex flex-col items-center text-center">
+              <div className="w-20 h-20 mb-4 relative">
+                {/* Yellow circle background */}
+                <div className="w-full h-full bg-primary-yellow rounded-full absolute"></div>
+                {/* Avatar */}
+                <div className="w-full h-full flex items-center justify-center relative">
+                  <span className="text-3xl">🐭</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 font-mono">Bienvenido,</p>
+                <p className="font-bold text-xl font-mono mt-1">Usuario</p>
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex-1">
+              <ul className="space-y-10">
+                <li>
+                  <button 
+                    onClick={() => setActiveTab('dashboard')}
+                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                      activeTab === 'dashboard' 
+                        ? 'font-bold bg-gray-100/60' 
+                        : 'font-normal hover:bg-gray-100/40'
+                    }`}
+                  >
+                    <span className="mr-4 w-8 h-8 flex items-center justify-center">
+                      <img src={dashboardIcon} alt="Dashboard" className="w-6 h-6" />
+                    </span>
+                    <span className="text-lg font-mono">Dashboard</span>
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setActiveTab('statistics')}
+                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                      activeTab === 'statistics' 
+                        ? 'font-bold bg-gray-100/60' 
+                        : 'font-normal hover:bg-gray-100/40'
+                    }`}
+                  >
+                    <span className="mr-4 w-8 h-8 flex items-center justify-center">
+                      <img src={estadisticasIcon} alt="Estadísticas" className="w-6 h-6" />
+                    </span>
+                    <span className="text-lg font-mono">Estadísticas</span>
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setActiveTab('configuration')}
+                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                      activeTab === 'configuration' 
+                        ? 'font-bold bg-gray-100/60' 
+                        : 'font-normal hover:bg-gray-100/40'
+                    }`}
+                  >
+                    <span className="mr-4 w-8 h-8 flex items-center justify-center">
+                      <img src={configuracionIcon} alt="Configuración" className="w-6 h-6" />
+                    </span>
+                    <span className="text-lg font-mono">Configuración</span>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+
+            {/* Bottom actions */}
+            <div className="mt-auto pt-8 space-y-6">
+              <button 
+                onClick={toggleDarkMode}
+                className="flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-gray-100/40"
+              >
+                <span className="mr-4 w-8 h-8 flex items-center justify-center">
+                  <img src={darkModeIcon} alt="Dark Mode" className="w-6 h-6" />
+                </span>
+                <span className="text-lg font-mono">Dark Mode</span>
+              </button>
+              <button 
+                className="flex items-center w-full p-3 rounded-xl text-red-500 transition-all duration-200 hover:bg-gray-100/40"
+              >
+                <span className="mr-4 w-8 h-8 flex items-center justify-center">
+                  <img src={salirIcon} alt="Salir" className="w-6 h-6" />
+                </span>
+                <span className="text-lg font-mono">Salir</span>
+              </button>
             </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">Bienvenido,</p>
-            <p className="font-bold text-lg font-mono">Usuario</p>
-          </div>
-        </div>
-
-        {/* Navigation - ajustado para parecerse al mockup */}
-        <nav className="flex-1">
-          <ul className="space-y-8">
-            <li>
-              <button 
-                onClick={() => setActiveTab('dashboard')}
-                className={`flex items-center w-full p-2 transition-colors ${
-                  activeTab === 'dashboard' 
-                    ? 'font-bold' 
-                    : 'font-normal'
-                }`}
-              >
-                <span className="mr-3 w-6 h-6 flex items-center justify-center">
-                  <img src={dashboardIcon} alt="Dashboard" className="w-5 h-5" />
-                </span>
-                <span className="text-lg font-mono">Dashboard</span>
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => setActiveTab('statistics')}
-                className={`flex items-center w-full p-2 transition-colors ${
-                  activeTab === 'statistics' 
-                    ? 'font-bold' 
-                    : 'font-normal'
-                }`}
-              >
-                <span className="mr-3 w-6 h-6 flex items-center justify-center">
-                  <img src={estadisticasIcon} alt="Estadísticas" className="w-5 h-5" />
-                </span>
-                <span className="text-lg font-mono">Estadísticas</span>
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => setActiveTab('configuration')}
-                className={`flex items-center w-full p-2 transition-colors ${
-                  activeTab === 'configuration' 
-                    ? 'font-bold' 
-                    : 'font-normal'
-                }`}
-              >
-                <span className="mr-3 w-6 h-6 flex items-center justify-center">
-                  <img src={configuracionIcon} alt="Configuración" className="w-5 h-5" />
-                </span>
-                <span className="text-lg font-mono">Configuración</span>
-              </button>
-            </li>
-          </ul>
-        </nav>
-
-        {/* Bottom actions - ajustado para parecerse al mockup */}
-        <div className="mt-auto pt-6">
-          <button 
-            onClick={toggleDarkMode}
-            className="flex items-center w-full p-2 rounded-lg mb-6"
-          >
-            <span className="mr-3 w-6 h-6 flex items-center justify-center">
-              <img src={darkModeIcon} alt="Dark Mode" className="w-5 h-5" />
-            </span>
-            <span className="text-lg font-mono">Dark Mode</span>
-          </button>
-          <button 
-            className="flex items-center w-full p-2 rounded-lg text-red-500"
-          >
-            <span className="mr-3 w-6 h-6 flex items-center justify-center">
-              <img src={salirIcon} alt="Salir" className="w-5 h-5" />
-            </span>
-            <span className="text-lg font-mono">Salir</span>
-          </button>
-        </div>
-
-        {/* ... resto del sidebar ... */}
-      </div>
-
-      {/* Main content - ajustado para parecerse más al mockup */}
-      <div className="flex-1 p-6 z-10 overflow-auto">
-        {/* Título con elementos decorativos detrás */}
-        <div className="relative mb-8 ml-4">
-          <h2 className="text-3xl font-bold font-mono relative z-10">Dashboard</h2>
-          {/* Elementos decorativos específicos detrás del título */}
-          <img 
-            src={yellowDotsImg} 
-            alt="" 
-            className="absolute -top-4 right-0 w-16 h-16 object-contain opacity-70 z-0" 
-          />
-          <img 
-            src={blueCircleImg} 
-            alt="" 
-            className="absolute -top-2 -right-20 w-12 h-12 object-contain opacity-60 z-0" 
-          />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-4 max-w-screen-xl">
-          {/* User Level Widget - estilizado como en el mockup */}
-          <div className={`${darkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white'} p-8 rounded-3xl shadow-md`}>
-            <h3 className="text-xl font-bold mb-6 font-mono text-center">Nivel</h3>
-            <div className="flex items-center justify-center space-x-8 mb-6">
-              <div className="flex items-center">
-                <span className="text-3xl font-bold mr-3 font-mono">1</span>
-                <span className="text-xl bg-black text-white rounded-full w-8 h-8 flex items-center justify-center">★</span>
-              </div>
-              <span className="text-2xl font-mono">→</span>
-              <div className="flex items-center">
-                <span className="text-3xl font-bold mr-3 font-mono">2</span>
-                <span className="text-xl bg-black text-white rounded-full w-8 h-8 flex items-center justify-center">★</span>
-              </div>
-            </div>
-            <p className="text-center text-sm font-mono">5 puntos para subir</p>
-          </div>
-
-          {/* Time Stats Graph - ajustado para parecerse al mockup */}
-          <div className={`${darkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white'} p-8 rounded-3xl shadow-md`}>
-            <h3 className="text-xl font-bold mb-4 font-mono">Tiempo de Juego</h3>
-
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={timeData}
-                  margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis 
-                    dataKey="day" 
-                    tick={{fontSize: 10}}
-                    axisLine={{ stroke: '#E0E0E0' }}
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    tick={{fontSize: 10}} 
-                    axisLine={{ stroke: '#E0E0E0' }}
-                    tickLine={false}
-                    domain={[0, 7]}
-                    ticks={[0, 1, 3, 5, 7]} // Valores específicos del mockup
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      borderRadius: '8px',
-                      border: 'none',
-                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-                    }} 
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="hours" 
-                    stroke="#FF0000" 
-                    strokeWidth={2} 
-                    dot={{ r: 4, fill: "#000000", strokeWidth: 0 }} 
-                    activeDot={{ r: 6 }} 
-                    isAnimationActive={true} 
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Recent Games Widget - ajustado según el diseño de Figma */}
-          <div className={`${darkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white'} p-8 rounded-3xl shadow-md transition-all duration-300 hover:shadow-lg`}>
-            <h3 className="text-xl font-bold mb-6 font-mono text-center">Últimas 5 partidas.</h3>
-            <ul className="space-y-5">
-              {recentGames.map((game, index) => (
-                <li key={index} className="flex justify-between items-center">
-                  <span className="text-xl">{game.status}</span>
-                  <span className="text-xl font-mono">{game.time}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Leaderboard Widget - ajustado según el diseño de Figma */}
-          <div className={`${darkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white'} p-8 rounded-3xl shadow-md`}>
-            <h3 className="text-xl font-bold mb-6 font-mono text-center">Leaderboard</h3>
-            <ul className="space-y-5">
-              {leaderboardData.map((player, index) => (
-                <li key={index} className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <span className="mr-3 text-xl">{player.medal}</span>
-                    <span className="text-xl font-mono">{player.time}</span>
+        {/* Main content area */}
+        <div className="p-6 overflow-auto">
+          <h1 className="text-3xl font-bold font-mono mb-8 mt-4">Dashboard</h1>
+          
+          {/* Dashboard content grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Level Progress Card */}
+            <div className="bg-white rounded-3xl p-6 shadow-md">
+              <h2 className="text-2xl font-bold font-mono mb-6">Nivel</h2>
+              <div className="flex items-center justify-center space-x-8">
+                <div className="flex flex-col items-center">
+                  <span className="text-3xl font-bold">1</span>
+                  <div className="mt-2 bg-black text-white rounded-full w-12 h-12 flex items-center justify-center">
+                    <span className="text-xl">★</span>
                   </div>
-                  <span className="font-medium text-lg">{player.name}</span>
-                </li>
-              ))}
-            </ul>
+                </div>
+                
+                <div className="text-3xl">→</div>
+                
+                <div className="flex flex-col items-center">
+                  <span className="text-3xl font-bold">2</span>
+                  <div className="mt-2 bg-gray-300 text-gray-600 rounded-full w-12 h-12 flex items-center justify-center">
+                    <span className="text-xl">✪</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-center mt-6 text-sm font-mono">5 puntos para subir</p>
+            </div>
+            
+            {/* Gameplay Time Chart */}
+            <div className="bg-white rounded-3xl p-6 shadow-md">
+              <h2 className="text-2xl font-bold font-mono mb-6">Tiempo de Juego</h2>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={timePlayedData}
+                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                    <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Line 
+                      type="monotone" 
+                      dataKey="hours" 
+                      stroke="#FF4D4D" 
+                      strokeWidth={2}
+                      dot={{ r: 4, fill: "#FF4D4D" }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            
+            {/* Recent Matches Panel */}
+            <div className="bg-white rounded-3xl p-6 shadow-md">
+              <h2 className="text-2xl font-bold font-mono mb-6">Últimas 5 partidas.</h2>
+              <div className="space-y-4">
+                {recentGames.map((game, index) => (
+                  <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-2xl">{game.medal}</span>
+                    <span className="text-xl font-mono">{game.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Leaderboard */}
+            <div className="bg-white rounded-3xl p-6 shadow-md">
+              <h2 className="text-2xl font-bold font-mono mb-6">Leaderboard</h2>
+              <div className="space-y-4">
+                {leaderboardData.map((player, index) => (
+                  <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <div className="flex items-center">
+                      <span className="text-2xl mr-3">{player.medal}</span>
+                      <span className="text-xl font-mono">{player.time}</span>
+                    </div>
+                    <span className="text-xl font-mono">{player.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
