@@ -23,11 +23,15 @@ import elemento11 from '../assets/Elementos_Aulify/elemento11.png'; // elemento4
 
 // Import logo and navigation icons
 import aulifyLogo from '../assets/images/Aulify_Logo.png';
+import aulifyLogoWhite from '../assets/images/Aulify_Logo_White.png';
 import dashboardIcon from '../assets/images/Dashboard_Logo.png';
 import estadisticasIcon from '../assets/images/Estadisticas_Logo.png';
 import configuracionIcon from '../assets/images/Configuracion_Logo.png';
 import darkModeIcon from '../assets/images/DarkMode_Logo.png';
 import salirIcon from '../assets/images/Salir_Logo.png';
+
+// Import ParticlesBackground component
+import ParticlesBackground from '../components/ParticlesBackground';
 
 // Import chart components
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -329,6 +333,10 @@ const Dashboard = () => {
           darkMode ? 'bg-[#001E3D]/60' : 'bg-[#52BEDA]/25'
         }`}></div>
       </div>
+      
+      {/* Add the particles background */}
+      <ParticlesBackground />
+      
       {/* Decorative background with physics-enabled Elementos_Aulify assets */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {/* Physics-enabled Elementos_Aulify assets */}
@@ -348,7 +356,13 @@ const Dashboard = () => {
               zIndex: element.zIndex,
               transition: 'opacity 0.3s ease-in-out',
               filter: 'drop-shadow(0 0 3px rgba(255, 255, 255, 0.3))',
+              imageRendering: 'auto',
+              backfaceVisibility: 'hidden',
+              willChange: 'transform',
+              transformStyle: 'preserve-3d'
             }}
+            loading="lazy"
+            decoding="async"
           />
         ))}
       </div>
@@ -367,7 +381,7 @@ const Dashboard = () => {
             <div className="mb-7 flex justify-center">
               <div className="h-12 w-36 flex items-center justify-center">
                 <img 
-                  src={aulifyLogo} 
+                  src={darkMode ? aulifyLogoWhite : aulifyLogo} 
                   alt="Aulify" 
                   className="h-full object-contain" 
                 />

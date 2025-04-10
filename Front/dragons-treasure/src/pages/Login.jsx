@@ -8,6 +8,8 @@ import blueCircleImg from '../assets/images/blue_circle.png';
 import blueWaveImg from '../assets/images/blue_line.png';
 import yellowDotsImg from '../assets/images/yellow_dots.png';
 import yellowWaveImg from '../assets/images/yellow_line.png';
+import aulifyLogo from '../assets/images/Aulify_Logo.png';
+import aulifyLogoWhite from '../assets/images/Aulify_Logo_White.png';
 
 // Import ParticlesBackground
 import ParticlesBackground from '../components/ParticlesBackground';
@@ -169,6 +171,15 @@ const Login = () => {
 
         {/* Login card - completely removing the border in dark mode */}
         <div className={`${darkMode ? 'bg-black-900/90 backdrop-blur-md rounded-xl border-0' : 'glass'} w-full p-8 z-10 relative`}>
+          {/* Logo above login heading */}
+          <div className="flex justify-center mb-8">
+            <img 
+              src={darkMode ? aulifyLogoWhite : aulifyLogo} 
+              alt="Aulify Logo" 
+              className="h-20 object-contain" // Increased height from h-12 to h-20
+            />
+          </div>
+          
           {/* Updated Login heading with yellow background and black dot */}
           <h1 className="text-3xl font-bold mb-12 text-center relative inline-block w-full">
             <span className="relative z-10">Login</span>
