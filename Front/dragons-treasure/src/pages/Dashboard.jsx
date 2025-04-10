@@ -66,11 +66,11 @@ const Dashboard = () => {
           opacity: Math.random() * 0.3 + 0.2, // Between 0.2 and 0.5 for better visibility
           zIndex: Math.floor(Math.random() * 10),
           // Physics properties
-          vx: (Math.random() - 0.5) * 1.2, // Increased initial velocity X
-          vy: (Math.random() - 0.5) * 1.2, // Increased initial velocity Y
-          mass: size / 60, // Significantly reduced mass (from size/25 to size/60)
+          vx: (Math.random() - 0.5) * 1.5, // Increased horizontal velocity
+          vy: (Math.random() - 0.5) * 1.5, // Increased vertical velocity
+          mass: size / 40, // Balanced mass
           rotationSpeed: (Math.random() - 0.5) * 0.3, // Rotation speed
-          elasticity: 0.8 + Math.random() * 0.2, // Increased elasticity for better bouncing
+          elasticity: 0.85 + Math.random() * 0.15, // Higher elasticity for better bouncing
         });
       }
       return elements;
@@ -109,14 +109,14 @@ const Dashboard = () => {
         for (let i = 0; i < updatedElements.length; i++) {
           const element = updatedElements[i];
           
-          // Apply velocity
-          element.x += element.vx * deltaTime * 0.1;
-          element.y += element.vy * deltaTime * 0.1;
-          element.rotation += element.rotationSpeed * deltaTime * 0.1;
+          // Apply velocity with reduced speed factor
+          element.x += element.vx * deltaTime * 0.06; // Reduced from 0.1
+          element.y += element.vy * deltaTime * 0.06; // Reduced from 0.1
+          element.rotation += element.rotationSpeed * deltaTime * 0.06; // Reduced from 0.1
 
-          // Add slight random movement for liquid-like effect
-          element.vx += (Math.random() - 0.5) * 0.03;
-          element.vy += (Math.random() - 0.5) * 0.03;
+          // Add slight random movement for liquid-like effect (reduced)
+          element.vx += (Math.random() - 0.5) * 0.02; // Reduced from 0.04
+          element.vy += (Math.random() - 0.5) * 0.02; // Reduced from 0.04
           
           // Boundary collisions with damping
           if (element.x < 0) {
@@ -132,38 +132,45 @@ const Dashboard = () => {
             element.vy = Math.abs(element.vy) * element.elasticity;
           } else if (element.y > containerHeight - element.size) {
             element.y = containerHeight - element.size;
-            element.vy = -Math.abs(element.vy) * element.elasticity * 1.3; // Stronger bounce from bottom
-            
-            // Add extra upward impulse when hitting bottom to ensure they bounce back up
-            element.vy -= 0.8 * element.elasticity;
+            element.vy = -Math.abs(element.vy) * element.elasticity;
           }
 
-          // Apply a very small gravity (reduced)
-          element.vy += 0.001; // Reduced from 0.002
+          // Apply a balanced gravity (very small)
+          element.vy += 0.0005; // Reduced gravity to prevent settling at bottom
           
-          // Apply less drag/friction to simulate fluid
-          element.vx *= 0.998; // Reduced drag from 0.995
-          element.vy *= 0.998; // Reduced drag from 0.995
+          // Apply minimal drag/friction to maintain momentum
+          element.vx *= 0.999; // Almost no horizontal drag
+          element.vy *= 0.999; // Almost no vertical drag
           
           // Ensure minimum velocity to keep elements always moving
-          const minVelocity = 0.08; // Increased minimum velocity
+          const minVelocity = 0.1; // Higher minimum velocity
           const currentVelocity = Math.sqrt(element.vx * element.vx + element.vy * element.vy);
           
           if (currentVelocity < minVelocity) {
-            // If moving too slowly, add random impulse
+            // If moving too slowly, add random impulse in any direction
             const angle = Math.random() * Math.PI * 2;
-            element.vx += Math.cos(angle) * (minVelocity + Math.random() * 0.2);
-            element.vy += Math.sin(angle) * (minVelocity + Math.random() * 0.2);
-            
-            // Add extra upward impulse if near bottom to prevent settling
-            if (element.y > containerHeight - element.size - 100) {
-              element.vy -= 0.4;
-            }
+            element.vx += Math.cos(angle) * (minVelocity + Math.random() * 0.3);
+            element.vy += Math.sin(angle) * (minVelocity + Math.random() * 0.3);
           }
           
-          // Occasionally add upward impulse to random elements to create flow back to top
-          if (Math.random() < 0.005) { // 0.5% chance per frame
-            element.vy -= 0.5 + Math.random() * 0.5;
+          // Occasionally add random directional impulses to create movement throughout the space
+          if (Math.random() < 0.01) { // 1% chance per frame
+            const angle = Math.random() * Math.PI * 2;
+            element.vx += Math.cos(angle) * 0.3;
+            element.vy += Math.sin(angle) * 0.3;
+          }
+          
+          // Add forces to push elements toward the center if they're near edges
+          const centerX = containerWidth / 2;
+          const centerY = containerHeight / 2;
+          const distanceFromCenterX = element.x + element.size/2 - centerX;
+          const distanceFromCenterY = element.y + element.size/2 - centerY;
+          
+          // If element is in the outer 20% of the screen, add a small force toward center
+          if (Math.abs(distanceFromCenterX) > containerWidth * 0.4 || 
+              Math.abs(distanceFromCenterY) > containerHeight * 0.4) {
+            element.vx -= distanceFromCenterX * 0.00002;
+            element.vy -= distanceFromCenterY * 0.00002;
           }
         }
 
@@ -294,12 +301,6 @@ const Dashboard = () => {
       
       {/* Decorative background with physics-enabled Elementos_Aulify assets */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Original decorative elements */}
-        <img src={yellowDotsImg} alt="" className="absolute top-32 right-1/4 w-24 h-24 object-contain opacity-40" />
-        <img src={blueCircleImg} alt="" className="absolute top-40 right-10 w-40 h-40 object-contain opacity-30" />
-        <img src={yellowWaveImg} alt="" className="absolute bottom-20 left-1/3 w-32 h-32 object-contain opacity-40 transform rotate-90" />
-        <img src={blueWaveImg} alt="" className="absolute top-60 left-20 w-36 h-36 object-contain opacity-40" />
-        
         {/* Physics-enabled Elementos_Aulify assets */}
         {backgroundElements.map((element) => (
           <img 
@@ -325,15 +326,15 @@ const Dashboard = () => {
       {/* Main content wrapper - Using CSS Grid */}
       <div className="relative min-h-screen grid grid-cols-[290px_1fr]">
         {/* Sidebar - Enhanced glass effect */}
-        <div className="z-40">
-          <div className={`h-screen py-6 px-8 flex flex-col rounded-tr-3xl rounded-br-3xl ${
+        <div className="z-40 h-screen overflow-hidden">
+          <div className={`h-full py-4 px-8 flex flex-col rounded-3xl overflow-y-auto ${
             darkMode 
               ? 'bg-[#ececec]/25 backdrop-blur-xl border border-white/10 text-gray-800 shadow-lg' 
               : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30 shadow-lg'
           }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
             {/* Logo */}
-            <div className="mb-10 flex justify-center">
-              <div className="h-12 w-32 flex items-center justify-center">
+            <div className="mb-6 flex justify-center">
+              <div className="h-10 w-32 flex items-center justify-center">
                 <img 
                   src={aulifyLogo} 
                   alt="Aulify" 
@@ -343,95 +344,95 @@ const Dashboard = () => {
             </div>
 
             {/* User welcome section - Enhanced glass effect */}
-            <div className="mb-14 flex flex-col items-center text-center">
-              <div className="w-20 h-20 mb-4 relative">
+            <div className="mb-8 flex flex-col items-center text-center">
+              <div className="w-16 h-16 mb-3 relative">
                 {/* Yellow circle background with glass effect */}
                 <div className="w-full h-full bg-primary-yellow/60 rounded-full absolute backdrop-blur-sm border border-white/30"></div>
                 {/* Avatar */}
                 <div className="w-full h-full flex items-center justify-center relative">
-                  <span className="text-3xl">🐭</span>
+                  <span className="text-2xl">🐭</span>
                 </div>
               </div>
               <div>
-                <p className={`text-sm ${darkMode ? 'text-gray-600' : 'text-gray-500'} font-mono`}>Bienvenido,</p>
-                <p className="font-bold text-xl font-mono mt-1">Usuario</p>
+                <p className={`text-xs ${darkMode ? 'text-gray-600' : 'text-gray-500'} font-mono`}>Bienvenido,</p>
+                <p className="font-bold text-base font-mono mt-1">Usuario</p>
               </div>
             </div>
 
             {/* Navigation - Enhanced glass effect */}
             <nav className="flex-1">
-              <ul className="space-y-10">
+              <ul className="space-y-4">
                 <li>
                   <button 
                     onClick={() => setActiveTab('dashboard')}
-                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                    className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
                       activeTab === 'dashboard' 
                         ? `font-bold ${darkMode ? 'bg-[#ececec]/40' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-white/15' : 'border-white/40'} shadow-sm` 
                         : `font-normal ${darkMode ? 'hover:bg-[#ececec]/30' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
                     }`}
                   >
-                    <span className="mr-4 w-8 h-8 flex items-center justify-center">
-                      <img src={dashboardIcon} alt="Dashboard" className="w-6 h-6" />
+                    <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                      <img src={dashboardIcon} alt="Dashboard" className="w-4 h-4" />
                     </span>
-                    <span className="text-lg font-mono">Dashboard</span>
+                    <span className="text-sm font-mono">Dashboard</span>
                   </button>
                 </li>
                 
                 <li>
                   <button 
                     onClick={() => setActiveTab('statistics')}
-                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                    className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
                       activeTab === 'statistics' 
                         ? `font-bold ${darkMode ? 'bg-[#ececec]/40' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-white/15' : 'border-white/40'} shadow-sm` 
                         : `font-normal ${darkMode ? 'hover:bg-[#ececec]/30' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
                     }`}
                   >
-                    <span className="mr-4 w-8 h-8 flex items-center justify-center">
-                      <img src={estadisticasIcon} alt="Estadísticas" className="w-6 h-6" />
+                    <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                      <img src={estadisticasIcon} alt="Estadísticas" className="w-4 h-4" />
                     </span>
-                    <span className="text-lg font-mono">Estadísticas</span>
+                    <span className="text-sm font-mono">Estadísticas</span>
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setActiveTab('configuration')}
-                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                    className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
                       activeTab === 'configuration' 
                         ? `font-bold ${darkMode ? 'bg-[#ececec]/40' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-white/15' : 'border-white/40'} shadow-sm` 
                         : `font-normal ${darkMode ? 'hover:bg-[#ececec]/30' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
                     }`}
                   >
-                    <span className="mr-4 w-8 h-8 flex items-center justify-center">
-                      <img src={configuracionIcon} alt="Configuración" className="w-6 h-6" />
+                    <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                      <img src={configuracionIcon} alt="Configuración" className="w-4 h-4" />
                     </span>
-                    <span className="text-lg font-mono">Configuración</span>
+                    <span className="text-sm font-mono">Configuración</span>
                   </button>
                 </li>
               </ul>
             </nav>
 
             {/* Bottom actions - Enhanced glass effect */}
-            <div className="mt-auto pt-8 space-y-6">
+            <div className="mt-auto pt-3 space-y-3">
               <button 
                 onClick={toggleDarkMode}
-                className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
                   darkMode ? 'bg-[#ececec]/20 hover:bg-[#ececec]/30 border border-white/15' : 'bg-[#ececec]/30 hover:bg-[#ececec]/50 border border-white/30'
                 } backdrop-blur-md`}
               >
-                <span className="mr-4 w-8 h-8 flex items-center justify-center">
-                  <img src={darkModeIcon} alt="Dark Mode" className="w-6 h-6" />
+                <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                  <img src={darkModeIcon} alt="Dark Mode" className="w-4 h-4" />
                 </span>
-                <span className="text-lg font-mono">Dark Mode</span>
+                <span className="text-sm font-mono">Dark Mode</span>
               </button>
               <button 
-                className={`flex items-center w-full p-3 rounded-xl text-red-500 transition-all duration-200 ${
+                className={`flex items-center w-full p-2 rounded-xl text-red-500 transition-all duration-200 mb-1 ${
                   darkMode ? 'bg-[#ececec]/20 hover:bg-[#ececec]/30 border border-white/15' : 'bg-[#ececec]/30 hover:bg-[#ececec]/50 border border-white/30'
                 } backdrop-blur-md`}
               >
-                <span className="mr-4 w-8 h-8 flex items-center justify-center">
-                  <img src={salirIcon} alt="Salir" className="w-6 h-6" />
+                <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                  <img src={salirIcon} alt="Salir" className="w-4 h-4" />
                 </span>
-                <span className="text-lg font-mono">Salir</span>
+                <span className="text-sm font-mono">Salir</span>
               </button>
             </div>
           </div>
