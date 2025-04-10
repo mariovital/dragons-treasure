@@ -1,5 +1,5 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 // Import your images
@@ -24,8 +24,8 @@ const Login = () => {
   const mousePosition = useMousePosition();
   const [containerBounds, setContainerBounds] = useState({ x: 0, y: 0, width: 0, height: 0 });
   
-  // Update container bounds when component mounts
-  useState(() => {
+  // Update container bounds when component mounts - Fixed with useEffect
+  useEffect(() => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       setContainerBounds({
@@ -47,6 +47,9 @@ const Login = () => {
         });
       }
     };
+    
+    // Initial call to set bounds
+    handleResize();
     
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
