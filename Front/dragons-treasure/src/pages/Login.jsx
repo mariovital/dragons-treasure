@@ -128,7 +128,7 @@ const Login = () => {
         />
 
         {/* Login card */}
-        <div className={`${darkMode ? 'bg-gray-800/70 backdrop-blur-md border-gray-700/50' : 'glass'} w-full p-8 z-10 relative`}>
+        <div className={`${darkMode ? 'bg-gray-800/70 backdrop-blur-md border-gray-700/50 rounded-xl border' : 'glass'} w-full p-8 z-10 relative`}>
           {/* Updated Login heading with yellow background and black dot */}
           <h1 className="text-3xl font-bold mb-12 text-center relative inline-block w-full">
             <span className="relative z-10">Login</span>
