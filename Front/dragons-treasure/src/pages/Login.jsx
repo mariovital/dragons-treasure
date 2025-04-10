@@ -1,9 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 // Import your images
-// Note: You'll need to add your actual image files to the assets/images directory
 import blueCircleImg from '../assets/images/blue_circle.png';
 import blueWaveImg from '../assets/images/blue_line.png';
 import yellowDotsImg from '../assets/images/yellow_dots.png';
@@ -11,6 +10,7 @@ import yellowWaveImg from '../assets/images/yellow_line.png';
 
 // Import ParticlesBackground
 import ParticlesBackground from '../components/ParticlesBackground';
+import useMousePosition from '../hooks/useMousePosition';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +19,46 @@ const Login = () => {
     password: '',
     rememberMe: false
   });
+  
+  const containerRef = useRef(null);
+  const mousePosition = useMousePosition();
+  const [containerBounds, setContainerBounds] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  
+  // Update container bounds when component mounts
+  useState(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setContainerBounds({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height
+      });
+    }
+    
+    const handleResize = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerBounds({
+          x: rect.left,
+          y: rect.top,
+          width: rect.width,
+          height: rect.height
+        });
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  // Calculate relative mouse position
+  const relativeX = mousePosition.x - containerBounds.x;
+  const relativeY = mousePosition.y - containerBounds.y;
+  
+  // Calculate movement factors (between -1 and 1)
+  const moveFactorX = containerBounds.width > 0 ? (relativeX / containerBounds.width) * 2 - 1 : 0;
+  const moveFactorY = containerBounds.height > 0 ? (relativeY / containerBounds.height) * 2 - 1 : 0;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -41,34 +81,45 @@ const Login = () => {
       <ParticlesBackground />
       
       {/* Login card with decorative elements positioned relative to it */}
-      <div className="relative w-full max-w-md">
+      <div ref={containerRef} className="relative w-full max-w-md">
         {/* Blue circle with red outline - positioned at top left of card */}
         <img 
           src={blueCircleImg} 
           alt="" 
-          className="absolute -left-24 -top-24 w-60 h-48 object-contain z-0" 
+          className="absolute -left-24 -top-24 w-60 h-48 object-contain z-0 transition-transform duration-300 ease-out" 
+          style={{ 
+            transform: `translate(${moveFactorX * 10}px, ${moveFactorY * 10}px) rotate(${moveFactorX * 5}deg)` 
+          }}
         />
         
         {/* Blue wavy line - positioned at right side of card */}
         <img 
           src={blueWaveImg} 
           alt="" 
-          className="absolute -right-40 top-25 w-60 h-64 object-contain z-0" 
+          className="absolute -right-40 top-25 w-60 h-64 object-contain z-0 transition-transform duration-300 ease-out" 
+          style={{ 
+            transform: `translate(${-moveFactorX * 15}px, ${moveFactorY * 8}px) rotate(${-moveFactorX * 3}deg)` 
+          }}
         />
         
         {/* Yellow dot pattern - adjusted positioning and size */}
         <img 
           src={yellowDotsImg} 
           alt="" 
-          className="absolute -right-11 bottom-0 w-48 h-48 object-contain z-0 translate-x-1/4 translate-y-1/4" 
+          className="absolute -right-11 bottom-0 w-48 h-48 object-contain z-0 translate-x-1/4 translate-y-1/4 transition-transform duration-300 ease-out" 
+          style={{ 
+            transform: `translate(${-moveFactorX * 12}px, ${-moveFactorY * 12}px)` 
+          }}
         />
         
         {/* Yellow wavy line - increased size and adjusted position to match Figma */}
         <img 
           src={yellowWaveImg} 
           alt="" 
-          className="absolute -left-28 bottom-16 w-48 h-48 object-contain z-0"
-          style={{ transform: 'rotate(30deg)' }}
+          className="absolute -left-28 bottom-16 w-48 h-48 object-contain z-0 transition-transform duration-300 ease-out"
+          style={{ 
+            transform: `rotate(30deg) translate(${moveFactorX * 15}px, ${-moveFactorY * 10}px)` 
+          }}
         />
 
         {/* Login card */}
@@ -80,6 +131,7 @@ const Login = () => {
             <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-primary-yellow h-4 w-32 -z-0 opacity-50 rounded-sm"></span>
           </h1>
           
+          {/* Rest of the form remains unchanged */}
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
               <label htmlFor="username" className="block text-sm font-medium mb-1">
