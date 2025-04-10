@@ -25,10 +25,15 @@ import elemento11 from '../assets/Elementos_Aulify/elemento11.png'; // elemento4
 import aulifyLogo from '../assets/images/Aulify_Logo.png';
 import aulifyLogoWhite from '../assets/images/Aulify_Logo_White.png';
 import dashboardIcon from '../assets/images/Dashboard_Logo.png';
+import dashboardIconLight from '../assets/images/Dashboard_Light.png';
 import estadisticasIcon from '../assets/images/Estadisticas_Logo.png';
+import estadisticasIconLight from '../assets/images/Estadisticas_Light.png';
 import configuracionIcon from '../assets/images/Configuracion_Logo.png';
+import configuracionIconLight from '../assets/images/Configuracion_Light.png';
 import darkModeIcon from '../assets/images/DarkMode_Logo.png';
+import lightModeIcon from '../assets/images/Light_Mode.png';
 import salirIcon from '../assets/images/Salir_Logo.png';
+import salirIconLight from '../assets/images/Salir_Light.png';
 
 // Import ParticlesBackground component
 import ParticlesBackground from '../components/ParticlesBackground';
@@ -420,7 +425,7 @@ const Dashboard = () => {
                     }`}
                   >
                     <span className="mr-3 w-7 h-7 flex items-center justify-center">
-                      <img src={dashboardIcon} alt="Dashboard" className="w-5 h-5" />
+                      <img src={darkMode ? dashboardIconLight : dashboardIcon} alt="Dashboard" className="w-5 h-5" />
                     </span>
                     <span className="text-base">Dashboard</span>
                   </button>
@@ -436,7 +441,7 @@ const Dashboard = () => {
                     }`}
                   >
                     <span className="mr-3 w-7 h-7 flex items-center justify-center">
-                      <img src={estadisticasIcon} alt="Estadísticas" className="w-5 h-5" />
+                      <img src={darkMode ? estadisticasIconLight : estadisticasIcon} alt="Estadísticas" className="w-5 h-5" />
                     </span>
                     <span className="text-base">Estadísticas</span>
                   </button>
@@ -451,7 +456,7 @@ const Dashboard = () => {
                     }`}
                   >
                     <span className="mr-3 w-7 h-7 flex items-center justify-center">
-                      <img src={configuracionIcon} alt="Configuración" className="w-5 h-5" />
+                      <img src={darkMode ? configuracionIconLight : configuracionIcon} alt="Configuración" className="w-5 h-5" />
                     </span>
                     <span className="text-base">Configuración</span>
                   </button>
@@ -468,7 +473,7 @@ const Dashboard = () => {
                 } backdrop-blur-md`}
               >
                 <span className="mr-3 w-7 h-7 flex items-center justify-center">
-                  <img src={darkModeIcon} alt="Dark Mode" className="w-5 h-5" />
+                  <img src={darkMode ? lightModeIcon : darkModeIcon} alt="Dark Mode" className="w-5 h-5" />
                 </span>
                 <span className="text-base">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
@@ -478,7 +483,7 @@ const Dashboard = () => {
                 } backdrop-blur-md`}
               >
                 <span className="mr-3 w-7 h-7 flex items-center justify-center">
-                  <img src={salirIcon} alt="Salir" className="w-5 h-5" />
+                  <img src={darkMode ? salirIconLight : salirIcon} alt="Salir" className="w-5 h-5" />
                 </span>
                 <span className="text-base">Salir</span>
               </button>
