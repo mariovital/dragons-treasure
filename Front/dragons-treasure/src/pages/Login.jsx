@@ -1,6 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Import your images
 import blueCircleImg from '../assets/images/blue_circle.png';
@@ -13,6 +14,7 @@ import ParticlesBackground from '../components/ParticlesBackground';
 import useMousePosition from '../hooks/useMousePosition';
 
 const Login = () => {
+  const { darkMode, toggleDarkMode } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -79,7 +81,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
+    <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'} relative overflow-hidden`}>
       {/* Add the particles background */}
       <ParticlesBackground />
       
@@ -126,11 +128,11 @@ const Login = () => {
         />
 
         {/* Login card */}
-        <div className="glass w-full p-8 z-10 relative">
+        <div className={`${darkMode ? 'bg-gray-800/70 backdrop-blur-md border-gray-700/50' : 'glass'} w-full p-8 z-10 relative`}>
           {/* Updated Login heading with yellow background and black dot */}
           <h1 className="text-3xl font-bold mb-12 text-center relative inline-block w-full">
             <span className="relative z-10">Login</span>
-            <span className="text-black">.</span>
+            <span className={darkMode ? "text-white" : "text-black"}>.</span>
             <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-primary-yellow h-4 w-32 -z-0 opacity-50 rounded-sm"></span>
           </h1>
           
@@ -144,7 +146,7 @@ const Login = () => {
                 type="text"
                 id="username"
                 name="username"
-                className="input"
+                className={`input ${darkMode ? 'bg-gray-700/50 border-gray-600' : ''}`}
                 value={formData.username}
                 onChange={handleChange}
                 required
@@ -165,7 +167,7 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
-                  className="input pr-10"
+                  className={`input pr-10 ${darkMode ? 'bg-gray-700/50 border-gray-600' : ''}`}
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -202,11 +204,35 @@ const Login = () => {
             </button>
           </form>
           
-          <div className="text-center">
+          <div className="text-center mb-4">
             <span className="text-sm">¿Eres Nuevo? </span>
-            <a href="#" className="text-sm font-medium text-gray-900 hover:underline">
+            <a href="#" className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'} hover:underline`}>
               Crear una Cuenta
             </a>
+          </div>
+          
+          {/* Dark Mode Toggle Button */}
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={toggleDarkMode}
+              className={`flex items-center justify-center px-4 py-2 rounded-full transition-colors ${
+                darkMode 
+                  ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+              }`}
+            >
+              {darkMode ? (
+                <>
+                  <Sun size={16} className="mr-2" />
+                  <span>Modo Claro</span>
+                </>
+              ) : (
+                <>
+                  <Moon size={16} className="mr-2" />
+                  <span>Modo Oscuro</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
