@@ -53,45 +53,38 @@ const Dashboard = () => {
     <div className={`h-screen flex ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'} relative overflow-hidden`}>
       {/* Contenedor para elementos decorativos de fondo - reposicionados según el mockup */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Franja superior con elementos decorativos */}
-        <div className="absolute top-0 left-0 w-full h-32 flex items-center justify-between px-4 z-0">
-          <img 
-            src={yellowWaveImg} 
-            alt="" 
-            className="w-16 h-16 object-contain opacity-80 transform -rotate-45" 
-          />
-          <img 
-            src={blueWaveImg} 
-            alt="" 
-            className="w-24 h-24 object-contain opacity-80" 
-          />
-          <img 
-            src={yellowDotsImg} 
-            alt="" 
-            className="w-20 h-20 object-contain opacity-80" 
-          />
-          <img 
-            src={blueCircleImg} 
-            alt="" 
-            className="w-32 h-32 object-contain opacity-80" 
-          />
-        </div>
-        
-        {/* Elementos decorativos adicionales distribuidos */}
+        {/* Elementos decorativos distribuidos según el mockup */}
         <img 
-          src={yellowDotsImg} 
+          src={blueWaveImg} 
           alt="" 
-          className="absolute top-20 right-1/4 w-24 h-24 object-contain opacity-70" 
+          className="absolute top-10 left-1/4 w-32 h-32 object-contain opacity-80" 
         />
         <img 
           src={blueCircleImg} 
           alt="" 
-          className="absolute top-40 right-10 w-40 h-40 object-contain opacity-60" 
+          className="absolute top-4 right-4 w-24 h-24 object-contain opacity-80" 
+        />
+        <img 
+          src={yellowDotsImg} 
+          alt="" 
+          className="absolute top-16 right-1/4 w-20 h-20 object-contain opacity-70" 
         />
         <img 
           src={yellowWaveImg} 
           alt="" 
-          className="absolute bottom-20 left-1/3 w-32 h-32 object-contain opacity-70 transform rotate-90" 
+          className="absolute top-40 left-1/3 w-24 h-24 object-contain opacity-70 transform rotate-45" 
+        />
+        
+        {/* Elementos decorativos adicionales */}
+        <img 
+          src={blueCircleImg} 
+          alt="" 
+          className="absolute bottom-20 right-10 w-40 h-40 object-contain opacity-60" 
+        />
+        <img 
+          src={yellowWaveImg} 
+          alt="" 
+          className="absolute bottom-40 left-10 w-32 h-32 object-contain opacity-70 transform -rotate-45" 
         />
       </div>
       
@@ -200,8 +193,22 @@ const Dashboard = () => {
       </div>
 
       {/* Main content - ajustado para parecerse más al mockup */}
-      <div className="flex-1 p-6 z-10 overflow-auto pt-16">
-        <h2 className="text-2xl font-bold mb-8 ml-4 font-mono">Dashboard</h2>
+      <div className="flex-1 p-6 z-10 overflow-auto">
+        {/* Título con elementos decorativos detrás */}
+        <div className="relative mb-8 ml-4">
+          <h2 className="text-3xl font-bold font-mono relative z-10">Dashboard</h2>
+          {/* Elementos decorativos específicos detrás del título */}
+          <img 
+            src={yellowDotsImg} 
+            alt="" 
+            className="absolute -top-4 right-0 w-16 h-16 object-contain opacity-70 z-0" 
+          />
+          <img 
+            src={blueCircleImg} 
+            alt="" 
+            className="absolute -top-2 -right-20 w-12 h-12 object-contain opacity-60 z-0" 
+          />
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-4 max-w-screen-xl">
           {/* User Level Widget - estilizado como en el mockup */}
@@ -224,7 +231,7 @@ const Dashboard = () => {
           {/* Time Stats Graph - ajustado para parecerse al mockup */}
           <div className={`${darkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white'} p-8 rounded-3xl shadow-md`}>
             <h3 className="text-xl font-bold mb-4 font-mono">Tiempo de Juego</h3>
-            // Modificaciones para el gráfico de tiempo de juego
+
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart

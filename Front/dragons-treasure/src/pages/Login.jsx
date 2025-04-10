@@ -62,8 +62,8 @@ const Login = () => {
   const relativeY = mousePosition.y - containerBounds.y;
   
   // Calculate movement factors (between -1 and 1)
-  const moveFactorX = containerBounds.width > 0 ? (relativeX / containerBounds.width) * 2 - 1 : 0;
-  const moveFactorY = containerBounds.height > 0 ? (relativeY / containerBounds.height) * 2 - 1 : 0;
+  const moveFactorX = containerBounds.width > 0 ? (relativeX / containerBounds.width) * 3 - 1 : 0;
+  const moveFactorY = containerBounds.height > 0 ? (relativeY / containerBounds.height) * 3 - 1 : 0;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
