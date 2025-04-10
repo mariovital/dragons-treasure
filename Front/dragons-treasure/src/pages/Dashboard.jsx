@@ -291,14 +291,44 @@ const Dashboard = () => {
 
   return (
     <div className={`w-full min-h-screen ${darkMode ? 'text-white' : 'text-gray-800'}`} ref={containerRef}>
-      {/* Gradient background */}
-      <div className="fixed inset-0 bg-white" style={{ 
-        background: darkMode 
-          ? 'linear-gradient(135deg, #1D1934 0%, #D44D56 25%, #0053B1 50%, #005D97 75%, #52BEDA 100%)' 
-          : 'linear-gradient(135deg, white 0%, #F6BA27 15%, #52BEDA 40%, #0053B1 65%, #D44D56 85%, #1D1934 100%)',
-        opacity: darkMode ? '0.9' : '0.15'
-      }}></div>
-      
+      {/* Gradient background with organic circular feel */}
+      <div className="fixed inset-0 bg-white overflow-hidden">
+        <div className={`absolute inset-0 ${
+          darkMode 
+            ? 'bg-[#0F0C1D]' 
+            : 'bg-white'
+        }`}></div>
+        
+        {/* Organic circular gradient overlays - smaller sizes for more color variety */}
+        <div className={`absolute w-[80%] h-[80%] rounded-full blur-[80px] -top-[5%] -left-[5%] ${
+          darkMode ? 'bg-[#331A1D]/70' : 'bg-[#F6BA27]/30'
+        }`}></div>
+        
+        <div className={`absolute w-[70%] h-[70%] rounded-full blur-[90px] top-[40%] -right-[10%] ${
+          darkMode ? 'bg-[#001E3D]/80' : 'bg-[#52BEDA]/30'
+        }`}></div>
+        
+        <div className={`absolute w-[60%] h-[60%] rounded-full blur-[100px] -bottom-[10%] left-[30%] ${
+          darkMode ? 'bg-[#1A4D5C]/70' : 'bg-[#0053B1]/20'
+        }`}></div>
+        
+        <div className={`absolute w-[50%] h-[50%] rounded-full blur-[70px] top-[15%] left-[40%] ${
+          darkMode ? 'bg-[#001F33]/60' : 'bg-[#D44D56]/20'
+        }`}></div>
+        
+        {/* Additional small organic shapes for texture and color variety */}
+        <div className={`absolute w-[25%] h-[25%] rounded-full blur-[60px] top-[60%] left-[15%] ${
+          darkMode ? 'bg-[#331A1D]/40' : 'bg-[#1D1934]/10'
+        }`}></div>
+        
+        <div className={`absolute w-[20%] h-[20%] rounded-full blur-[50px] top-[20%] left-[10%] ${
+          darkMode ? 'bg-[#1A4D5C]/50' : 'bg-[#F6BA27]/20'
+        }`}></div>
+        
+        <div className={`absolute w-[30%] h-[30%] rounded-full blur-[70px] bottom-[15%] right-[15%] ${
+          darkMode ? 'bg-[#001E3D]/60' : 'bg-[#52BEDA]/25'
+        }`}></div>
+      </div>
       {/* Decorative background with physics-enabled Elementos_Aulify assets */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {/* Physics-enabled Elementos_Aulify assets */}
@@ -324,17 +354,18 @@ const Dashboard = () => {
       </div>
       
       {/* Main content wrapper - Using CSS Grid */}
-      <div className="relative min-h-screen grid grid-cols-[290px_1fr]">
+      <div className="relative min-h-screen grid grid-cols-[320px_1fr]">
         {/* Sidebar - Enhanced glass effect */}
         <div className="z-40 h-screen overflow-hidden">
-          <div className={`h-full py-4 px-8 flex flex-col rounded-3xl overflow-y-auto ${
+          <div className={`h-full py-5 px-9 flex flex-col rounded-3xl overflow-y-auto ${
             darkMode 
-              ? 'bg-[#ececec]/25 backdrop-blur-xl border border-white/10 text-gray-800 shadow-lg' 
+              ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 text-gray-200 shadow-lg' 
               : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30 shadow-lg'
           }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
+            
             {/* Logo */}
-            <div className="mb-6 flex justify-center">
-              <div className="h-10 w-32 flex items-center justify-center">
+            <div className="mb-7 flex justify-center">
+              <div className="h-12 w-36 flex items-center justify-center">
                 <img 
                   src={aulifyLogo} 
                   alt="Aulify" 
@@ -344,68 +375,68 @@ const Dashboard = () => {
             </div>
 
             {/* User welcome section - Enhanced glass effect */}
-            <div className="mb-8 flex flex-col items-center text-center">
-              <div className="w-16 h-16 mb-3 relative">
+            <div className="mb-9 flex flex-col items-center text-center">
+              <div className="w-20 h-20 mb-4 relative">
                 {/* Yellow circle background with glass effect */}
-                <div className="w-full h-full bg-primary-yellow/60 rounded-full absolute backdrop-blur-sm border border-white/30"></div>
+                <div className={`w-full h-full ${darkMode ? 'bg-primary-yellow/40' : 'bg-primary-yellow/60'} rounded-full absolute backdrop-blur-sm ${darkMode ? 'border border-gray-700/50' : 'border border-white/30'}`}></div>
                 {/* Avatar */}
                 <div className="w-full h-full flex items-center justify-center relative">
-                  <span className="text-2xl">🐭</span>
+                  <span className="text-3xl">🐭</span>
                 </div>
               </div>
               <div>
-                <p className={`text-xs ${darkMode ? 'text-gray-600' : 'text-gray-500'} font-mono`}>Bienvenido,</p>
-                <p className="font-bold text-base font-mono mt-1">Usuario</p>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} font-mono`}>Bienvenido,</p>
+                <p className="font-bold text-lg font-mono mt-1">Usuario</p>
               </div>
             </div>
 
             {/* Navigation - Enhanced glass effect */}
             <nav className="flex-1">
-              <ul className="space-y-4">
+              <ul className="space-y-5">
                 <li>
                   <button 
                     onClick={() => setActiveTab('dashboard')}
-                    className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
+                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
                       activeTab === 'dashboard' 
-                        ? `font-bold ${darkMode ? 'bg-[#ececec]/40' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-white/15' : 'border-white/40'} shadow-sm` 
-                        : `font-normal ${darkMode ? 'hover:bg-[#ececec]/30' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
+                        ? `font-bold ${darkMode ? 'bg-[#2a2a2a]/70' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-gray-700/50' : 'border-white/40'} shadow-sm` 
+                        : `font-normal ${darkMode ? 'hover:bg-[#2a2a2a]/50' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
                     }`}
                   >
-                    <span className="mr-3 w-6 h-6 flex items-center justify-center">
-                      <img src={dashboardIcon} alt="Dashboard" className="w-4 h-4" />
+                    <span className="mr-3 w-7 h-7 flex items-center justify-center">
+                      <img src={dashboardIcon} alt="Dashboard" className="w-5 h-5" />
                     </span>
-                    <span className="text-sm font-mono">Dashboard</span>
+                    <span className="text-base font-mono">Dashboard</span>
                   </button>
                 </li>
                 
                 <li>
                   <button 
                     onClick={() => setActiveTab('statistics')}
-                    className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
+                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
                       activeTab === 'statistics' 
-                        ? `font-bold ${darkMode ? 'bg-[#ececec]/40' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-white/15' : 'border-white/40'} shadow-sm` 
-                        : `font-normal ${darkMode ? 'hover:bg-[#ececec]/30' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
+                        ? `font-bold ${darkMode ? 'bg-[#2a2a2a]/70' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-gray-700/50' : 'border-white/40'} shadow-sm` 
+                        : `font-normal ${darkMode ? 'hover:bg-[#2a2a2a]/50' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
                     }`}
                   >
-                    <span className="mr-3 w-6 h-6 flex items-center justify-center">
-                      <img src={estadisticasIcon} alt="Estadísticas" className="w-4 h-4" />
+                    <span className="mr-3 w-7 h-7 flex items-center justify-center">
+                      <img src={estadisticasIcon} alt="Estadísticas" className="w-5 h-5" />
                     </span>
-                    <span className="text-sm font-mono">Estadísticas</span>
+                    <span className="text-base font-mono">Estadísticas</span>
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setActiveTab('configuration')}
-                    className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
+                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
                       activeTab === 'configuration' 
-                        ? `font-bold ${darkMode ? 'bg-[#ececec]/40' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-white/15' : 'border-white/40'} shadow-sm` 
-                        : `font-normal ${darkMode ? 'hover:bg-[#ececec]/30' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
+                        ? `font-bold ${darkMode ? 'bg-[#2a2a2a]/70' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-gray-700/50' : 'border-white/40'} shadow-sm` 
+                        : `font-normal ${darkMode ? 'hover:bg-[#2a2a2a]/50' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
                     }`}
                   >
-                    <span className="mr-3 w-6 h-6 flex items-center justify-center">
-                      <img src={configuracionIcon} alt="Configuración" className="w-4 h-4" />
+                    <span className="mr-3 w-7 h-7 flex items-center justify-center">
+                      <img src={configuracionIcon} alt="Configuración" className="w-5 h-5" />
                     </span>
-                    <span className="text-sm font-mono">Configuración</span>
+                    <span className="text-base font-mono">Configuración</span>
                   </button>
                 </li>
               </ul>
@@ -415,69 +446,69 @@ const Dashboard = () => {
             <div className="mt-auto pt-3 space-y-3">
               <button 
                 onClick={toggleDarkMode}
-                className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
-                  darkMode ? 'bg-[#ececec]/20 hover:bg-[#ececec]/30 border border-white/15' : 'bg-[#ececec]/30 hover:bg-[#ececec]/50 border border-white/30'
+                className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                  darkMode ? 'bg-[#2a2a2a]/60 hover:bg-[#2a2a2a]/80 border border-gray-700/50' : 'bg-[#ececec]/30 hover:bg-[#ececec]/50 border border-white/30'
                 } backdrop-blur-md`}
               >
-                <span className="mr-3 w-6 h-6 flex items-center justify-center">
-                  <img src={darkModeIcon} alt="Dark Mode" className="w-4 h-4" />
+                <span className="mr-3 w-7 h-7 flex items-center justify-center">
+                  <img src={darkModeIcon} alt="Dark Mode" className="w-5 h-5" />
                 </span>
-                <span className="text-sm font-mono">Dark Mode</span>
+                <span className="text-base font-mono">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
               <button 
-                className={`flex items-center w-full p-2 rounded-xl text-red-500 transition-all duration-200 mb-1 ${
-                  darkMode ? 'bg-[#ececec]/20 hover:bg-[#ececec]/30 border border-white/15' : 'bg-[#ececec]/30 hover:bg-[#ececec]/50 border border-white/30'
+                className={`flex items-center w-full p-3 rounded-xl text-red-400 transition-all duration-200 mb-1 ${
+                  darkMode ? 'bg-[#2a2a2a]/60 hover:bg-[#2a2a2a]/80 border border-gray-700/50' : 'bg-[#ececec]/30 hover:bg-[#ececec]/50 border border-white/30'
                 } backdrop-blur-md`}
               >
-                <span className="mr-3 w-6 h-6 flex items-center justify-center">
-                  <img src={salirIcon} alt="Salir" className="w-4 h-4" />
+                <span className="mr-3 w-7 h-7 flex items-center justify-center">
+                  <img src={salirIcon} alt="Salir" className="w-5 h-5" />
                 </span>
-                <span className="text-sm font-mono">Salir</span>
+                <span className="text-base font-mono">Salir</span>
               </button>
             </div>
           </div>
         </div>
         
         {/* Main content area */}
-        <div className="p-6 overflow-auto">
-          <h1 className="text-3xl font-bold font-mono mb-8 mt-4">Dashboard</h1>
+        <div className="p-8 overflow-auto">
+          <h1 className="text-4xl font-bold font-mono mb-10 mt-4">Dashboard</h1>
           
           {/* Dashboard content grid - Enhanced glass effect for all cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Level Progress Card - Enhanced glass effect */}
-            <div className={`rounded-3xl p-6 ${
+            <div className={`rounded-3xl p-8 ${
               darkMode 
-                ? 'bg-[#ececec]/25 backdrop-blur-xl border border-white/15 text-gray-800' 
+                ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 text-gray-200' 
                 : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30'
             }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
-              <h2 className="text-2xl font-bold font-mono mb-6">Nivel</h2>
-              <div className="flex items-center justify-center space-x-8">
+              <h2 className="text-2xl font-bold font-mono mb-8">Nivel</h2>
+              <div className="flex items-center justify-center space-x-10">
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl font-bold">1</span>
-                  <div className="mt-2 bg-[#ececec]/80 text-gray-800 rounded-full w-12 h-12 flex items-center justify-center backdrop-blur-md border border-white/40 shadow-sm">
-                    <span className="text-xl">★</span>
+                  <span className="text-4xl font-bold">1</span>
+                  <div className={`mt-3 ${darkMode ? 'bg-[#2a2a2a]/80 text-gray-300' : 'bg-[#ececec]/80 text-gray-800'} rounded-full w-14 h-14 flex items-center justify-center backdrop-blur-md ${darkMode ? 'border border-gray-700/50' : 'border border-white/40'} shadow-sm`}>
+                    <span className="text-2xl">★</span>
                   </div>
                 </div>
                 
-                <div className="text-3xl">→</div>
+                <div className="text-4xl">→</div>
                 
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl font-bold">2</span>
-                  <div className="mt-2 bg-[#ececec]/60 text-gray-500 rounded-full w-12 h-12 flex items-center justify-center backdrop-blur-md border border-white/30 shadow-sm">
-                    <span className="text-xl">✪</span>
+                  <span className="text-4xl font-bold">2</span>
+                  <div className={`mt-3 ${darkMode ? 'bg-[#2a2a2a]/60 text-gray-500' : 'bg-[#ececec]/60 text-gray-500'} rounded-full w-14 h-14 flex items-center justify-center backdrop-blur-md ${darkMode ? 'border border-gray-700/40' : 'border border-white/30'} shadow-sm`}>
+                    <span className="text-2xl">✪</span>
                   </div>
                 </div>
               </div>
-              <p className="text-center mt-6 text-sm font-mono">5 puntos para subir</p>
+              <p className="text-center mt-8 text-base font-mono">5 puntos para subir</p>
             </div>
             
             {/* Gameplay Time Chart - Enhanced glass effect */}
-            <div className={`rounded-3xl p-6 ${
+            <div className={`rounded-3xl p-8 ${
               darkMode 
-                ? 'bg-[#ececec]/25 backdrop-blur-xl border border-white/15 text-gray-800' 
+                ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 text-gray-200' 
                 : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30'
             }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
-              <h2 className="text-2xl font-bold font-mono mb-6">Tiempo de Juego</h2>
+              <h2 className="text-2xl font-bold font-mono mb-8">Tiempo de Juego</h2>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
@@ -488,20 +519,20 @@ const Dashboard = () => {
                     <XAxis dataKey="day" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip contentStyle={{ 
-                      backgroundColor: 'rgba(236, 236, 236, 0.6)',
+                      backgroundColor: darkMode ? 'rgba(26, 26, 26, 0.8)' : 'rgba(236, 236, 236, 0.6)',
                       borderRadius: '12px',
                       backdropFilter: 'blur(16px)',
-                      border: '1px solid rgba(255, 255, 255, 0.4)',
-                      color: '#333',
+                      border: darkMode ? '1px solid rgba(70, 70, 70, 0.4)' : '1px solid rgba(255, 255, 255, 0.4)',
+                      color: darkMode ? '#e0e0e0' : '#333',
                       boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)'
                     }} />
                     <Line 
                       type="monotone" 
                       dataKey="hours" 
-                      stroke="#FF4D4D" 
+                      stroke="#0053B1" 
                       strokeWidth={2}
-                      dot={{ r: 4, fill: "#FF4D4D" }}
-                      activeDot={{ r: 6 }}
+                      dot={{ r: 4, fill: "#52BEDA", stroke: "#0053B1", strokeWidth: 1 }}
+                      activeDot={{ r: 6, fill: "#52BEDA", stroke: "#0053B1", strokeWidth: 2 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -509,37 +540,37 @@ const Dashboard = () => {
             </div>
             
             {/* Recent Matches Panel - Enhanced glass effect */}
-            <div className={`rounded-3xl p-6 ${
+            <div className={`rounded-3xl p-8 ${
               darkMode 
-                ? 'bg-[#ececec]/25 backdrop-blur-xl border border-white/15 text-gray-800' 
+                ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 text-gray-200' 
                 : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30'
             }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
-              <h2 className="text-2xl font-bold font-mono mb-6">Últimas 5 partidas.</h2>
-              <div className="space-y-4">
+              <h2 className="text-2xl font-bold font-mono mb-8">Últimas 5 partidas.</h2>
+              <div className="space-y-5">
                 {recentGames.map((game, index) => (
-                  <div key={index} className={`flex items-center justify-between py-2 border-b border-[#ececec]/70`}>
-                    <span className="text-2xl">{game.medal}</span>
-                    <span className="text-xl font-mono">{game.time}</span>
+                  <div key={index} className={`flex items-center justify-between py-3 border-b ${darkMode ? 'border-gray-700/30' : 'border-[#ececec]/70'}`}>
+                    <span className="text-3xl">{game.medal}</span>
+                    <span className="text-2xl font-mono">{game.time}</span>
                   </div>
                 ))}
               </div>
             </div>
             
             {/* Leaderboard - Enhanced glass effect */}
-            <div className={`rounded-3xl p-6 ${
+            <div className={`rounded-3xl p-8 ${
               darkMode 
-                ? 'bg-[#ececec]/25 backdrop-blur-xl border border-white/15 text-gray-800' 
+                ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 text-gray-200' 
                 : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30'
             }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
-              <h2 className="text-2xl font-bold font-mono mb-6">Leaderboard</h2>
-              <div className="space-y-4">
+              <h2 className="text-2xl font-bold font-mono mb-8">Leaderboard</h2>
+              <div className="space-y-5">
                 {leaderboardData.map((player, index) => (
-                  <div key={index} className={`flex items-center justify-between py-2 border-b border-[#ececec]/70`}>
+                  <div key={index} className={`flex items-center justify-between py-3 border-b ${darkMode ? 'border-gray-700/30' : 'border-[#ececec]/70'}`}>
                     <div className="flex items-center">
-                      <span className="text-2xl mr-3">{player.medal}</span>
-                      <span className="text-xl font-mono">{player.time}</span>
+                      <span className="text-3xl mr-4">{player.medal}</span>
+                      <span className="text-2xl font-mono">{player.time}</span>
                     </div>
-                    <span className="text-xl font-mono">{player.name}</span>
+                    <span className="text-2xl font-mono">{player.name}</span>
                   </div>
                 ))}
               </div>
