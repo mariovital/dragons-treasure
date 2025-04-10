@@ -224,6 +224,7 @@ const Dashboard = () => {
           {/* Time Stats Graph - ajustado para parecerse al mockup */}
           <div className={`${darkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white'} p-8 rounded-3xl shadow-md`}>
             <h3 className="text-xl font-bold mb-4 font-mono">Tiempo de Juego</h3>
+            // Modificaciones para el gráfico de tiempo de juego
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
@@ -231,9 +232,27 @@ const Dashboard = () => {
                   margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis dataKey="day" tick={{fontSize: 10}} />
-                  <YAxis tick={{fontSize: 10}} />
-                  <Tooltip />
+                  <XAxis 
+                    dataKey="day" 
+                    tick={{fontSize: 10}}
+                    axisLine={{ stroke: '#E0E0E0' }}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    tick={{fontSize: 10}} 
+                    axisLine={{ stroke: '#E0E0E0' }}
+                    tickLine={false}
+                    domain={[0, 7]}
+                    ticks={[0, 1, 3, 5, 7]} // Valores específicos del mockup
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      borderRadius: '8px',
+                      border: 'none',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                    }} 
+                  />
                   <Line 
                     type="monotone" 
                     dataKey="hours" 
@@ -248,8 +267,8 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Recent Games Widget - ajustado para parecerse al mockup */}
-          <div className={`${darkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white'} p-8 rounded-3xl shadow-md`}>
+          {/* Recent Games Widget - ajustado según el diseño de Figma */}
+          <div className={`${darkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white'} p-8 rounded-3xl shadow-md transition-all duration-300 hover:shadow-lg`}>
             <h3 className="text-xl font-bold mb-6 font-mono text-center">Últimas 5 partidas.</h3>
             <ul className="space-y-5">
               {recentGames.map((game, index) => (
@@ -261,7 +280,7 @@ const Dashboard = () => {
             </ul>
           </div>
 
-          {/* Leaderboard Widget - ajustado para parecerse al mockup */}
+          {/* Leaderboard Widget - ajustado según el diseño de Figma */}
           <div className={`${darkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white'} p-8 rounded-3xl shadow-md`}>
             <h3 className="text-xl font-bold mb-6 font-mono text-center">Leaderboard</h3>
             <ul className="space-y-5">
