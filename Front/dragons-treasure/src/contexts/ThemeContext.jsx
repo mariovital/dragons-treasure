@@ -6,15 +6,15 @@ export const ThemeProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    // Apply dark mode class to body
+    // Apply dark mode class to html and body
     if (darkMode) {
       document.documentElement.classList.add('dark');
-      document.body.classList.add('bg-gray-900');
-      document.body.classList.remove('bg-white');
+      document.documentElement.style.backgroundColor = '#000000';
+      document.body.style.backgroundColor = '#000000';
     } else {
       document.documentElement.classList.remove('dark');
-      document.body.classList.remove('bg-gray-900');
-      document.body.classList.add('bg-white');
+      document.documentElement.style.backgroundColor = '';
+      document.body.style.backgroundColor = '';
     }
   }, [darkMode]);
 

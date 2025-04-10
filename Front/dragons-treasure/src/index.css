@@ -29,3 +29,16 @@
 body {
   @apply bg-white text-gray-800;
 }
+
+/* Añade esto a tus estilos globales */
+html, body, #root {
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body.dark {
+  background-color: #000000;
+  color: white;
+}

@@ -81,12 +81,13 @@ const Login = () => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'} relative overflow-hidden`}>
+    <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-black text-white' : 'bg-white text-gray-800'} relative overflow-hidden w-full`}>
       {/* Add the particles background */}
       <ParticlesBackground />
       
       {/* Login card with decorative elements positioned relative to it */}
       <div ref={containerRef} className="relative w-full max-w-md">
+        {/* Decorative elements... */}
         {/* Blue circle with red outline - positioned at top left of card */}
         <img 
           src={blueCircleImg} 
@@ -127,8 +128,8 @@ const Login = () => {
           }}
         />
 
-        {/* Login card */}
-        <div className={`${darkMode ? 'bg-gray-800/70 backdrop-blur-md border-gray-700/50 rounded-xl border' : 'glass'} w-full p-8 z-10 relative`}>
+        {/* Login card - completely removing the border in dark mode */}
+        <div className={`${darkMode ? 'bg-black-900/90 backdrop-blur-md rounded-xl border-0' : 'glass'} w-full p-8 z-10 relative`}>
           {/* Updated Login heading with yellow background and black dot */}
           <h1 className="text-3xl font-bold mb-12 text-center relative inline-block w-full">
             <span className="relative z-10">Login</span>

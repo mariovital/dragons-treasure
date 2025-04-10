@@ -6,7 +6,9 @@ import './App.css';
 function App() {
   return (
     <ThemeProvider>
-      <Login />
+      <div className="w-full min-h-screen">
+        <Login />
+      </div>
     </ThemeProvider>
   );
 }
