@@ -9,6 +9,9 @@ import blueWaveImg from '../assets/images/blue_line.png';
 import yellowDotsImg from '../assets/images/yellow_dots.png';
 import yellowWaveImg from '../assets/images/yellow_line.png';
 
+// Import ParticlesBackground
+import ParticlesBackground from '../components/ParticlesBackground';
+
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -34,6 +37,9 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
+      {/* Add the particles background */}
+      <ParticlesBackground />
+      
       {/* Login card with decorative elements positioned relative to it */}
       <div className="relative w-full max-w-md">
         {/* Blue circle with red outline - positioned at top left of card */}
