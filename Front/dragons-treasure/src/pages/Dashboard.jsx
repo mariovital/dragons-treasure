@@ -7,6 +7,14 @@ import blueCircleImg from '../assets/images/blue_circle.png';
 import blueWaveImg from '../assets/images/blue_line.png';
 import yellowDotsImg from '../assets/images/yellow_dots.png';
 import yellowWaveImg from '../assets/images/yellow_line.png';
+import aulifyLogo from '../assets/images/Aulify_Logo.png';
+import aulifyLogoWhite from '../assets/images/Aulify_Logo_White.png';
+// Importamos los íconos para la navegación
+import dashboardIcon from '../assets/images/Dashboard_Logo.png';
+import estadisticasIcon from '../assets/images/Estadisticas_Logo.png';
+import configuracionIcon from '../assets/images/Configuracion_Logo.png';
+import darkModeIcon from '../assets/images/DarkMode_Logo.png';
+import salirIcon from '../assets/images/Salir_Logo.png';
 
 // Datos de ejemplo para el gráfico
 const timeData = [
@@ -67,32 +75,36 @@ const Dashboard = () => {
         />
       </div>
       
-      {/* Sidebar - reducido espaciado vertical */}
-      <div className={`w-64 ${darkMode ? 'bg-gray-900/80 backdrop-blur-md' : 'glass'} p-4 flex flex-col z-10 relative`}>
-        {/* Logo */}
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold">
-            aulify<span className="text-primary-yellow">.</span>
-          </h1>
+      {/* Sidebar - estilo actualizado para parecerse más al mockup de Figma */}
+      <div className={`w-64 ${darkMode ? 'bg-gray-900/80 backdrop-blur-md' : 'glass'} p-6 flex flex-col z-10 relative rounded-3xl mx-4 my-4 shadow-lg`}>
+        {/* Logo - usando la imagen agregada */}
+        <div className="mb-8 flex justify-center">
+          <div className="h-10 w-24 flex items-center justify-center">
+            <img 
+              src={darkMode ? aulifyLogoWhite : aulifyLogo} 
+              alt="Aulify" 
+              className="h-full object-contain" 
+            />
+          </div>
         </div>
 
-        {/* User welcome section - reducido espaciado */}
-        <div className="mb-6 flex items-center">
-          <div className="w-10 h-10 mr-3">
-            {/* Aquí irá la imagen del ratón con queso */}
+        {/* User welcome section - ajustado para parecerse al mockup */}
+        <div className="mb-12 flex flex-col items-center text-center">
+          <div className="w-16 h-16 mb-2">
+            {/* Placeholder para la imagen del ratón con queso */}
             <div className="w-full h-full bg-primary-yellow rounded-full flex items-center justify-center">
-              <span className="text-lg">🐭</span>
+              <span className="text-2xl">🐭</span>
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Bienvenido,</p>
-            <p className="font-medium">Usuario</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Bienvenido,</p>
+            <p className="font-bold text-lg">Usuario</p>
           </div>
         </div>
 
-        {/* Navigation - reducido espaciado entre items */}
+        {/* Navigation - ajustado para parecerse al mockup */}
         <nav className="flex-1">
-          <ul className="space-y-3">
+          <ul className="space-y-6">
             <li>
               <button 
                 onClick={() => setActiveTab('dashboard')}
@@ -102,8 +114,10 @@ const Dashboard = () => {
                     : 'font-normal'
                 }`}
               >
-                <span className="mr-3">⬛</span>
-                <span>Dashboard</span>
+                <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                  <img src={dashboardIcon} alt="Dashboard" className="w-5 h-5" />
+                </span>
+                <span className="text-lg">Dashboard</span>
               </button>
             </li>
             <li>
@@ -115,8 +129,10 @@ const Dashboard = () => {
                     : 'font-normal'
                 }`}
               >
-                <span className="mr-3">📊</span>
-                <span>Estadísticas</span>
+                <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                  <img src={estadisticasIcon} alt="Estadísticas" className="w-5 h-5" />
+                </span>
+                <span className="text-lg">Estadísticas</span>
               </button>
             </li>
             <li>
@@ -128,27 +144,33 @@ const Dashboard = () => {
                     : 'font-normal'
                 }`}
               >
-                <span className="mr-3">⚙️</span>
-                <span>Configuración</span>
+                <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                  <img src={configuracionIcon} alt="Configuración" className="w-5 h-5" />
+                </span>
+                <span className="text-lg">Configuración</span>
               </button>
             </li>
           </ul>
         </nav>
 
-        {/* Bottom actions - reducido espaciado */}
-        <div className="mt-auto pt-3">
+        {/* Bottom actions - ajustado para parecerse al mockup */}
+        <div className="mt-auto pt-6">
           <button 
             onClick={toggleDarkMode}
-            className="flex items-center w-full p-2 rounded-lg mb-2"
+            className="flex items-center w-full p-2 rounded-lg mb-6"
           >
-            <span className="mr-3">🌙</span>
-            <span>Dark Mode</span>
+            <span className="mr-3 w-6 h-6 flex items-center justify-center">
+              <img src={darkModeIcon} alt="Dark Mode" className="w-5 h-5" />
+            </span>
+            <span className="text-lg">Dark Mode</span>
           </button>
           <button 
             className="flex items-center w-full p-2 rounded-lg text-red-500"
           >
-            <span className="mr-3">✕</span>
-            <span>Salir</span>
+            <span className="mr-3 w-6 h-6 flex items-center justify-center">
+              <img src={salirIcon} alt="Salir" className="w-5 h-5" />
+            </span>
+            <span className="text-lg">Salir</span>
           </button>
         </div>
       </div>
