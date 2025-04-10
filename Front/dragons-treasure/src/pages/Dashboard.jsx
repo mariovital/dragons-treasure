@@ -36,6 +36,9 @@ import ParticlesBackground from '../components/ParticlesBackground';
 // Import chart components
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+// Import CrosstenLight font
+import '../fonts/CrosstenLight.css';
+
 const Dashboard = () => {
   const { darkMode, toggleDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -294,7 +297,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className={`w-full min-h-screen ${darkMode ? 'text-white' : 'text-gray-800'}`} ref={containerRef}>
+    <div className={`w-full min-h-screen ${darkMode ? 'text-white' : 'text-gray-800'} font-crossten`} ref={containerRef}>
       {/* Gradient background with organic circular feel */}
       <div className="fixed inset-0 bg-white overflow-hidden">
         <div className={`absolute inset-0 ${
@@ -399,8 +402,8 @@ const Dashboard = () => {
                 </div>
               </div>
               <div>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} font-mono`}>Bienvenido,</p>
-                <p className="font-bold text-lg font-mono mt-1">Usuario</p>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Bienvenido,</p>
+                <p className="font-bold text-lg mt-1">Usuario</p>
               </div>
             </div>
 
@@ -419,7 +422,7 @@ const Dashboard = () => {
                     <span className="mr-3 w-7 h-7 flex items-center justify-center">
                       <img src={dashboardIcon} alt="Dashboard" className="w-5 h-5" />
                     </span>
-                    <span className="text-base font-mono">Dashboard</span>
+                    <span className="text-base">Dashboard</span>
                   </button>
                 </li>
                 
@@ -435,7 +438,7 @@ const Dashboard = () => {
                     <span className="mr-3 w-7 h-7 flex items-center justify-center">
                       <img src={estadisticasIcon} alt="Estadísticas" className="w-5 h-5" />
                     </span>
-                    <span className="text-base font-mono">Estadísticas</span>
+                    <span className="text-base">Estadísticas</span>
                   </button>
                 </li>
                 <li>
@@ -450,7 +453,7 @@ const Dashboard = () => {
                     <span className="mr-3 w-7 h-7 flex items-center justify-center">
                       <img src={configuracionIcon} alt="Configuración" className="w-5 h-5" />
                     </span>
-                    <span className="text-base font-mono">Configuración</span>
+                    <span className="text-base">Configuración</span>
                   </button>
                 </li>
               </ul>
@@ -467,7 +470,7 @@ const Dashboard = () => {
                 <span className="mr-3 w-7 h-7 flex items-center justify-center">
                   <img src={darkModeIcon} alt="Dark Mode" className="w-5 h-5" />
                 </span>
-                <span className="text-base font-mono">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                <span className="text-base">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
               <button 
                 className={`flex items-center w-full p-3 rounded-xl text-red-400 transition-all duration-200 mb-1 ${
@@ -477,7 +480,7 @@ const Dashboard = () => {
                 <span className="mr-3 w-7 h-7 flex items-center justify-center">
                   <img src={salirIcon} alt="Salir" className="w-5 h-5" />
                 </span>
-                <span className="text-base font-mono">Salir</span>
+                <span className="text-base">Salir</span>
               </button>
             </div>
           </div>
@@ -485,7 +488,7 @@ const Dashboard = () => {
         
         {/* Main content area */}
         <div className="p-8 overflow-auto">
-          <h1 className="text-4xl font-bold font-mono mb-10 mt-4">Dashboard</h1>
+          <h1 className="text-4xl font-bold mb-10 mt-4">Dashboard</h1>
           
           {/* Dashboard content grid - Enhanced glass effect for all cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -495,7 +498,7 @@ const Dashboard = () => {
                 ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 text-gray-200' 
                 : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30'
             }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
-              <h2 className="text-2xl font-bold font-mono mb-8">Nivel</h2>
+              <h2 className="text-2xl font-bold mb-8">Nivel</h2>
               <div className="flex items-center justify-center space-x-10">
                 <div className="flex flex-col items-center">
                   <span className="text-4xl font-bold">1</span>
@@ -513,7 +516,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              <p className="text-center mt-8 text-base font-mono">5 puntos para subir</p>
+              <p className="text-center mt-8 text-base">5 puntos para subir</p>
             </div>
             
             {/* Gameplay Time Chart - Enhanced glass effect */}
@@ -559,12 +562,12 @@ const Dashboard = () => {
                 ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 text-gray-200' 
                 : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30'
             }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
-              <h2 className="text-2xl font-bold font-mono mb-8">Últimas 5 partidas.</h2>
+              <h2 className="text-2xl font-bold mb-8">Últimas 5 partidas.</h2>
               <div className="space-y-5">
                 {recentGames.map((game, index) => (
                   <div key={index} className={`flex items-center justify-between py-3 border-b ${darkMode ? 'border-gray-700/30' : 'border-[#ececec]/70'}`}>
                     <span className="text-3xl">{game.medal}</span>
-                    <span className="text-2xl font-mono">{game.time}</span>
+                    <span className="text-2xl">{game.time}</span>
                   </div>
                 ))}
               </div>
@@ -576,15 +579,15 @@ const Dashboard = () => {
                 ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 text-gray-200' 
                 : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30'
             }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
-              <h2 className="text-2xl font-bold font-mono mb-8">Leaderboard</h2>
+              <h2 className="text-2xl font-bold mb-8">Leaderboard</h2>
               <div className="space-y-5">
                 {leaderboardData.map((player, index) => (
                   <div key={index} className={`flex items-center justify-between py-3 border-b ${darkMode ? 'border-gray-700/30' : 'border-[#ececec]/70'}`}>
                     <div className="flex items-center">
                       <span className="text-3xl mr-4">{player.medal}</span>
-                      <span className="text-2xl font-mono">{player.time}</span>
+                      <span className="text-2xl">{player.time}</span>
                     </div>
-                    <span className="text-2xl font-mono">{player.name}</span>
+                    <span className="text-2xl">{player.name}</span>
                   </div>
                 ))}
               </div>

@@ -7,25 +7,15 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      colors: {
-        primary: {
-          blue: '#2563EB',
-          yellow: '#F59E0B',
-        },
-        error: '#EF4444',
-        success: '#10B981',
-      },
       fontFamily: {
-        sans: ['"SF Mono"', 'monospace'],
+        sans: ['Crossten', 'sans-serif'],
+        crossten: ['Crossten', 'sans-serif'],
       },
-      backdropBlur: {
-        'md': '10px',
-      },
-      backgroundImage: {
-        'blue-circle': "url('/src/assets/images/blue-circle.png')",
-        'blue-wave': "url('/src/assets/images/blue-wave.png')",
-        'yellow-dots': "url('/src/assets/images/yellow-dots.png')",
-        'yellow-wave': "url('/src/assets/images/yellow-wave.png')",
+      colors: {
+        'primary-blue': '#0053B1',
+        'primary-blue-dark': '#003E85',
+        'primary-yellow': '#F6BA27',
+        'black-900': '#121212',
       },
     },
   },

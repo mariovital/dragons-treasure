@@ -1,0 +1,11 @@
+@font-face {
+  font-family: 'Crossten';
+  src: url('./CrosstenLight.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-crossten {
+  font-family: 'Crossten', sans-serif;
+}

@@ -4,44 +4,23 @@
 
 @layer base {
   html {
-    font-family: "SF Mono", monospace;
-  }
-}
-
-@layer components {
-  .glass {
-    @apply bg-white/70 backdrop-blur-md rounded-2xl border border-gray-200/50 shadow-lg;
+    font-family: 'Crossten', sans-serif;
   }
   
-  .button-primary {
-    @apply bg-primary-yellow hover:bg-yellow-500 text-gray-800 font-medium py-2 px-4 rounded-full transition-all duration-300;
-  }
-  
-  .button-secondary {
-    @apply bg-transparent hover:bg-gray-100 border border-gray-300 text-gray-800 font-medium py-2 px-4 rounded-full transition-all duration-300;
-  }
-  
-  .input {
-    @apply bg-gray-100/50 border border-gray-200 rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-primary-blue transition-all;
+  body {
+    @apply antialiased;
   }
 }
 
-body {
-  @apply bg-white text-gray-800;
+/* Add your custom styles below */
+.glass {
+  @apply bg-white/40 backdrop-blur-xl border border-white/30 rounded-xl;
 }
 
-/* Añade esto a tus estilos globales */
-html, body, #root {
-  min-height: 100vh;
-  width: 100%;
-  margin: 0;
-  padding: 0;
+.input {
+  @apply w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent;
 }
 
-body.dark {
-  background-color: #000000;
-  color: white;
+.button-primary {
+  @apply bg-primary-blue text-white font-medium rounded-lg transition-colors hover:bg-primary-blue-dark focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2;
 }
-
-/* Añadir al principio del archivo si no existe */
-@import url('https://fonts.googleapis.com/css2?family=SF+Mono:wght@400;600&display=swap');

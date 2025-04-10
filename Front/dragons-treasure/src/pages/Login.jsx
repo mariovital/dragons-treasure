@@ -15,6 +15,9 @@ import aulifyLogoWhite from '../assets/images/Aulify_Logo_White.png';
 import ParticlesBackground from '../components/ParticlesBackground';
 import useMousePosition from '../hooks/useMousePosition';
 
+// Import CrosstenLight font
+import '../fonts/CrosstenLight.css';
+
 const Login = () => {
   const { darkMode, toggleDarkMode } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
@@ -83,7 +86,7 @@ const Login = () => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'text-white' : 'text-gray-800'} relative overflow-hidden w-full`}>
+    <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'text-white' : 'text-gray-800'} relative overflow-hidden w-full font-crossten`}>
       {/* Gradient background with organic circular feel */}
       <div className="fixed inset-0 overflow-hidden">
         <div className={`absolute inset-0 ${
