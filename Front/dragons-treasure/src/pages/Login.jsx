@@ -112,7 +112,7 @@ const Login = () => {
         <img 
           src={yellowDotsImg} 
           alt="" 
-          className="absolute -right-11 bottom-0 w-48 h-48 object-contain z-0 translate-x-1/4 translate-y-1/4 transition-transform duration-300 ease-out" 
+          className="absolute -right-16 bottom-0 w-48 h-48 object-contain z-0 translate-x-1/4 translate-y-1/4 transition-transform duration-300 ease-out" 
           style={{ 
             transform: `translate(${-moveFactorX * 12}px, ${-moveFactorY * 12}px)` 
           }}
