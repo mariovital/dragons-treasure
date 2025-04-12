@@ -378,16 +378,16 @@ const Dashboard = () => {
       {/* Main content wrapper - Using CSS Grid */}
       <div className="relative min-h-screen grid grid-cols-[320px_1fr]">
         {/* Sidebar - Enhanced glass effect */}
-        <div className="z-40 h-screen overflow-hidden">
-          <div className={`h-full py-5 px-9 flex flex-col rounded-3xl overflow-y-auto ${
+        <div className="z-40 h-[95vh] overflow-auto">
+          <div className={`h-full py-2 px-6 flex flex-col rounded-3xl ${
             darkMode 
               ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 text-gray-200 shadow-lg' 
               : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30 shadow-lg'
           }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
             
             {/* Logo */}
-            <div className="mb-7 flex justify-center">
-              <div className="h-12 w-36 flex items-center justify-center">
+            <div className="mb-2 flex justify-center">
+              <div className="h-10 w-36 flex items-center justify-center">
                 <img 
                   src={darkMode ? aulifyLogoWhite : aulifyLogo} 
                   alt="Aulify" 
@@ -397,8 +397,8 @@ const Dashboard = () => {
             </div>
 
             {/* User welcome section - Enhanced glass effect */}
-            <div className="mb-9 flex flex-col items-center text-center">
-              <div className="w-20 h-20 mb-4 relative">
+            <div className="mb-3 flex flex-col items-center text-center">
+              <div className="w-20 h-20 mb-1 relative">
                 {/* Yellow circle background with glass effect */}
                 <div className={`w-full h-full ${darkMode ? 'bg-primary-yellow/40' : 'bg-primary-yellow/60'} rounded-full absolute backdrop-blur-sm ${darkMode ? 'border border-gray-700/50' : 'border border-white/30'}`}></div>
                 {/* Avatar */}
@@ -408,67 +408,67 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Bienvenido,</p>
-                <p className="font-bold text-lg mt-1">Usuario</p>
+                <p className="font-bold text-lg mt-0">Usuario</p>
               </div>
             </div>
 
             {/* Navigation - Enhanced glass effect */}
             <nav className="flex-1">
-              <ul className="space-y-5">
+              <ul className="space-y-2">
                 <li>
                   <button 
                     onClick={() => setActiveTab('dashboard')}
-                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                    className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
                       activeTab === 'dashboard' 
                         ? `font-bold ${darkMode ? 'bg-[#2a2a2a]/70' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-gray-700/50' : 'border-white/40'} shadow-sm` 
                         : `font-normal ${darkMode ? 'hover:bg-[#2a2a2a]/50' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
                     }`}
                   >
-                    <span className="mr-3 w-7 h-7 flex items-center justify-center">
-                      <img src={darkMode ? dashboardIconLight : dashboardIcon} alt="Dashboard" className="w-5 h-5" />
+                    <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                      <img src={darkMode ? dashboardIconLight : dashboardIcon} alt="Dashboard" className="w-4 h-4" />
                     </span>
-                    <span className="text-base">Dashboard</span>
+                    <span className="text-sm">Dashboard</span>
                   </button>
                 </li>
                 
                 <li>
                   <button 
                     onClick={() => setActiveTab('statistics')}
-                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                    className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
                       activeTab === 'statistics' 
                         ? `font-bold ${darkMode ? 'bg-[#2a2a2a]/70' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-gray-700/50' : 'border-white/40'} shadow-sm` 
                         : `font-normal ${darkMode ? 'hover:bg-[#2a2a2a]/50' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
                     }`}
                   >
-                    <span className="mr-3 w-7 h-7 flex items-center justify-center">
-                      <img src={darkMode ? estadisticasIconLight : estadisticasIcon} alt="Estadísticas" className="w-5 h-5" />
+                    <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                      <img src={darkMode ? estadisticasIconLight : estadisticasIcon} alt="Estadísticas" className="w-4 h-4" />
                     </span>
-                    <span className="text-base">Estadísticas</span>
+                    <span className="text-sm">Estadísticas</span>
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setActiveTab('configuration')}
-                    className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                    className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
                       activeTab === 'configuration' 
                         ? `font-bold ${darkMode ? 'bg-[#2a2a2a]/70' : 'bg-[#ececec]/60'} backdrop-blur-xl border ${darkMode ? 'border-gray-700/50' : 'border-white/40'} shadow-sm` 
                         : `font-normal ${darkMode ? 'hover:bg-[#2a2a2a]/50' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`
                     }`}
                   >
-                    <span className="mr-3 w-7 h-7 flex items-center justify-center">
-                      <img src={darkMode ? configuracionIconLight : configuracionIcon} alt="Configuración" className="w-5 h-5" />
+                    <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                      <img src={darkMode ? configuracionIconLight : configuracionIcon} alt="Configuración" className="w-4 h-4" />
                     </span>
-                    <span className="text-base">Configuración</span>
+                    <span className="text-sm">Configuración</span>
                   </button>
                 </li>
               </ul>
             </nav>
 
             {/* Bottom actions - Enhanced glass effect */}
-            <div className="mt-auto pt-3 space-y-3">
+            <div className="mt-auto pt-1 space-y-1.5">
               <button 
                 onClick={toggleDarkMode}
-                className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 ${
+                className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 ${
                   darkMode ? 'bg-[#2a2a2a]/60 hover:bg-[#2a2a2a]/80 border border-gray-700/50' : 'bg-[#ececec]/30 hover:bg-[#ececec]/50 border border-white/30'
                 } backdrop-blur-md`}
               >
@@ -478,7 +478,7 @@ const Dashboard = () => {
                 <span className="text-base">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
               <button 
-                className={`flex items-center w-full p-3 rounded-xl text-red-400 transition-all duration-200 mb-1 ${
+                className={`flex items-center w-full p-2 rounded-xl text-red-400 transition-all duration-200 mb-0 ${
                   darkMode ? 'bg-[#2a2a2a]/60 hover:bg-[#2a2a2a]/80 border border-gray-700/50' : 'bg-[#ececec]/30 hover:bg-[#ececec]/50 border border-white/30'
                 } backdrop-blur-md`}
               >
