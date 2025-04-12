@@ -25,7 +25,7 @@ import WarpSpeedButton from '../components/WarpSpeedButton';
 import AnimatedModeToggle from '../components/AnimatedModeToggle';
 
 const Login = () => {
-  const { darkMode } = useTheme();
+  const { darkMode, isTransitioning, transitionDirection } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -92,30 +92,18 @@ const Login = () => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'text-white' : 'text-gray-800'} relative overflow-hidden w-full font-crossten`}>
+    <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'text-white' : 'text-gray-800'} relative overflow-hidden w-full font-crossten transition-colors duration-300`}>
       {/* Gradient background with organic circular feel */}
       <div className="fixed inset-0 overflow-hidden">
-        <div className={`absolute inset-0 ${
+        <div className={`absolute inset-0 transition-colors duration-300 ${
           darkMode 
             ? 'bg-[#0F0C1D]' 
             : 'bg-white'
         }`}></div>
         
-        {/* Organic circular gradient overlays - smaller sizes for more color variety */}
-        <div className={`absolute w-[80%] h-[80%] rounded-full blur-[80px] -top-[5%] -left-[5%] ${
+        {/* Organic circular gradient overlays with transitions */}
+        <div className={`absolute w-[80%] h-[80%] rounded-full blur-[80px] -top-[5%] -left-[5%] transition-colors duration-300 ${
           darkMode ? 'bg-[#331A1D]/70' : 'bg-[#F6BA27]/30'
-        }`}></div>
-        
-        <div className={`absolute w-[70%] h-[70%] rounded-full blur-[90px] top-[40%] -right-[10%] ${
-          darkMode ? 'bg-[#001E3D]/80' : 'bg-[#52BEDA]/30'
-        }`}></div>
-        
-        <div className={`absolute w-[60%] h-[60%] rounded-full blur-[100px] -bottom-[10%] left-[30%] ${
-          darkMode ? 'bg-[#1A4D5C]/70' : 'bg-[#0053B1]/20'
-        }`}></div>
-        
-        <div className={`absolute w-[50%] h-[50%] rounded-full blur-[70px] top-[15%] left-[40%] ${
-          darkMode ? 'bg-[#001F33]/60' : 'bg-[#D44D56]/20'
         }`}></div>
         
         {/* Additional small organic shapes for texture and color variety */}
@@ -131,6 +119,23 @@ const Login = () => {
           darkMode ? 'bg-[#001E3D]/60' : 'bg-[#52BEDA]/25'
         }`}></div>
       </div>
+      
+      {/* Theme transition wave overlay */}
+      {isTransitioning && (
+        <div 
+          className={`fixed inset-0 z-[100] pointer-events-none transition-transform duration-300 ease-in-out ${
+            transitionDirection === 'to-dark' 
+              ? 'bg-gradient-to-r from-[#0F0C1D]/90 to-transparent translate-x-0' 
+              : 'bg-gradient-to-l from-white/90 to-transparent translate-x-0'
+          }`}
+          style={{
+            animationName: 'waveTransition',
+            animationDuration: '800ms',
+            animationTimingFunction: 'ease-in-out',
+            animationFillMode: 'forwards'
+          }}
+        />
+      )}
       
       {/* Add the particles background */}
       <ParticlesBackground />
@@ -179,7 +184,7 @@ const Login = () => {
         />
 
         {/* Login card - completely removing the border in dark mode */}
-        <div className={`${darkMode ? 'bg-black-900/90 backdrop-blur-md rounded-xl border-0' : 'glass'} w-full p-8 z-10 relative`}>
+        <div className={`${darkMode ? 'bg-black-900/90 backdrop-blur-md rounded-xl border-0' : 'glass'} w-full p-8 z-10 relative transition-all duration-300`}>
           {/* Logo above login heading */}
           <div className="flex justify-center mb-8">
             <img 
