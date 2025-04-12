@@ -120,16 +120,16 @@ const Login = () => {
         }`}></div>
       </div>
       
-      {/* Theme transition wave overlay */}
+      {/* Theme transition radial overlay */}
       {isTransitioning && (
         <div 
-          className={`fixed inset-0 z-[100] pointer-events-none transition-transform duration-300 ease-in-out ${
+          className={`fixed inset-0 z-[100] pointer-events-none ${
             transitionDirection === 'to-dark' 
-              ? 'bg-gradient-to-r from-[#0F0C1D]/90 to-transparent translate-x-0' 
-              : 'bg-gradient-to-l from-white/90 to-transparent translate-x-0'
+              ? 'bg-[#0F0C1D]' 
+              : 'bg-white'
           }`}
           style={{
-            animationName: 'waveTransition',
+            animationName: 'radialExpand',
             animationDuration: '800ms',
             animationTimingFunction: 'ease-in-out',
             animationFillMode: 'forwards'
@@ -183,17 +183,29 @@ const Login = () => {
           }}
         />
 
-        {/* Login card - completely removing the border in dark mode */}
-        <div className={`${darkMode ? 'bg-black-900/90 backdrop-blur-md rounded-xl border-0' : 'glass'} w-full p-8 z-10 relative transition-all duration-300`}>
+        {/* Login card with improved transitions */}
+        <div 
+          className={`w-full p-8 z-10 relative rounded-xl backdrop-blur-md transition-all duration-500 ease-in-out overflow-hidden ${
+            darkMode 
+              ? 'bg-[#0F0C1D]/80 border-0' 
+              : 'bg-white/50 border border-white/30 shadow-lg'
+          } ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100 animate-containerPop'}`}
+          style={{
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            transitionDelay: isTransitioning ? '0s' : '0.6s'
+          }}
+        >
           {/* Logo above login heading */}
           <div className="flex justify-center mb-8">
             <img 
               src={darkMode ? aulifyLogoWhite : aulifyLogo} 
               alt="Aulify Logo" 
-              className="h-20 object-contain" // Increased height from h-12 to h-20
+              className="h-20 object-contain transition-all duration-300 ease-in-out" 
             />
           </div>
           
+          {/* Rest of the component remains the same */}
           {/* Updated Login heading with yellow background and black dot */}
           <h1 className="text-3xl font-bold mb-12 text-center relative inline-block w-full">
             <span className="relative z-10">Login</span>

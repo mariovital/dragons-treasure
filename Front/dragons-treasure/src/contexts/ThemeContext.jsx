@@ -5,10 +5,9 @@ const ThemeContext = createContext();
 export const ThemeProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [transitionDirection, setTransitionDirection] = useState('to-dark'); // 'to-dark' or 'to-light'
+  const [transitionDirection, setTransitionDirection] = useState('to-dark');
   
   useEffect(() => {
-    // Check if user has a preference stored
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       setDarkMode(true);
@@ -19,18 +18,14 @@ export const ThemeProvider = ({ children }) => {
     setIsTransitioning(true);
     setTransitionDirection(darkMode ? 'to-light' : 'to-dark');
     
-    // Small delay to ensure transition starts properly
+    // Apply the theme change immediately
+    setDarkMode(prev => !prev);
+    localStorage.setItem('theme', darkMode ? 'light' : 'dark');
+    
+    // End transition after animation completes
     setTimeout(() => {
-      setDarkMode(prev => !prev);
-      
-      // Save preference to localStorage
-      localStorage.setItem('theme', !darkMode ? 'dark' : 'light');
-      
-      // End transition after animation completes
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 300);
-    }, 50);
+      setIsTransitioning(false);
+    }, 800);
   };
   
   return (

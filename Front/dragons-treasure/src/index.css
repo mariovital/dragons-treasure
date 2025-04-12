@@ -25,17 +25,69 @@
   @apply bg-primary-blue text-white font-medium rounded-lg transition-colors hover:bg-primary-blue-dark focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2;
 }
 
+/* Radial expansion animation for theme transition */
+@keyframes radialExpand {
+  0% {
+    clip-path: circle(0% at center);
+    opacity: 0.9;
+  }
+  100% {
+    clip-path: circle(150% at center);
+    opacity: 0;
+  }
+}
+
 /* Add this to your existing CSS */
 @keyframes waveTransition {
   0% {
     transform: translateX(-100%);
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
   }
   100% {
     transform: translateX(100%);
+  }
+}
+
+/* Add this new animation for the login container pop effect */
+/* Enhanced container pop animation with more dramatic movement */
+@keyframes containerPop {
+  0% {
+    transform: scale(0.8) translateY(-40px);
     opacity: 0;
+    box-shadow: 0 0 0 rgba(246, 186, 39, 0);
+  }
+  50% {
+    transform: scale(1.08) translateY(10px);
+    box-shadow: 0 0 30px rgba(246, 186, 39, 0.3);
+  }
+  75% {
+    transform: scale(0.95) translateY(-5px);
+    box-shadow: 0 0 20px rgba(246, 186, 39, 0.2);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(246, 186, 39, 0.1);
+  }
+}
+
+/* Energy particles animation */
+@keyframes particleFade {
+  0% {
+    opacity: 0.8;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.5);
+  }
+}
+
+@layer utilities {
+  .animate-containerPop {
+    animation: containerPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  
+  .animate-particleFade {
+    animation: particleFade 1s ease-out forwards;
   }
 }
