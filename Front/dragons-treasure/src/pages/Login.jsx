@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { Eye, EyeOff, Moon, Sun } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 // Import your images
@@ -18,8 +18,14 @@ import useMousePosition from '../hooks/useMousePosition';
 // Import CrosstenLight font
 import '../fonts/CrosstenLight.css';
 
+// Import the WarpSpeedButton component
+import WarpSpeedButton from '../components/WarpSpeedButton';
+
+// Import AnimatedModeToggle component
+import AnimatedModeToggle from '../components/AnimatedModeToggle';
+
 const Login = () => {
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { darkMode } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -250,12 +256,13 @@ const Login = () => {
               </label>
             </div>
             
-            <button
+            {/* Replace the regular button with the WarpSpeedButton */}
+            <WarpSpeedButton
               type="submit"
-              className="button-primary w-full py-3 mb-6"
+              className="mb-6"
             >
               Login
-            </button>
+            </WarpSpeedButton>
           </form>
           
           <div className="text-center mb-4">
@@ -265,28 +272,9 @@ const Login = () => {
             </a>
           </div>
           
-          {/* Dark Mode Toggle Button */}
+          {/* Replace the Dark Mode Toggle Button with AnimatedModeToggle */}
           <div className="flex justify-center mt-4">
-            <button
-              onClick={toggleDarkMode}
-              className={`flex items-center justify-center px-4 py-2 rounded-full transition-colors ${
-                darkMode 
-                  ? 'bg-gray-700 text-white hover:bg-gray-600' 
-                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-              }`}
-            >
-              {darkMode ? (
-                <>
-                  <Sun size={16} className="mr-2" />
-                  <span>Modo Claro</span>
-                </>
-              ) : (
-                <>
-                  <Moon size={16} className="mr-2" />
-                  <span>Modo Oscuro</span>
-                </>
-              )}
-            </button>
+            <AnimatedModeToggle />
           </div>
         </div>
       </div>

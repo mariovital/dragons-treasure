@@ -492,18 +492,18 @@ const Dashboard = () => {
         </div>
         
         {/* Main content area */}
-        <div className="p-8 overflow-auto">
-          <h1 className="text-4xl font-bold mb-10 mt-4">Dashboard</h1>
+        <div className="p-6 overflow-auto h-[95vh]">
+          <h1 className="text-3xl font-bold mb-6 mt-2">Dashboard</h1>
           
           {/* Dashboard content grid - Enhanced glass effect for all cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[calc(95vh-120px)]">
             {/* Level Progress Card - Enhanced glass effect */}
-            <div className={`rounded-3xl p-8 ${
+            <div className={`rounded-3xl p-6 ${
               darkMode 
                 ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 text-gray-200' 
                 : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30'
             }`} style={{ boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
-              <h2 className="text-2xl font-bold mb-8">Nivel</h2>
+              <h2 className="text-xl font-bold mb-6">Nivel</h2>
               <div className="flex items-center justify-center space-x-10">
                 <div className="flex flex-col items-center">
                   <span className="text-4xl font-bold">1</span>
