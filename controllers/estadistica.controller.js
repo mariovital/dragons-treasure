@@ -44,16 +44,20 @@ const recordVictory = async (req, res) => {
     } else if (req.query && Object.keys(req.query).length > 0) {
         // Intentar extraer gamertag de query params
         try {
-            // Si viene como objeto JSON en query
-            if (req.query['{"gamertag"']) {
-                gamertag = 'mario'; // Hardcoded para este caso específico
-            } else {
-                // Buscar en cualquier parámetro que pueda contener gamertag
-                for (const key in req.query) {
-                    if (key.includes('gamertag') || req.query[key].includes('mario')) {
-                        gamertag = 'mario';
-                        break;
-                    }
+            // Check for gamertag in query parameters
+            for (const key in req.query) {
+                if (key === 'gamertag' || key.includes('gamertag')) {
+                    gamertag = req.query[key];
+                    break;
+                }
+            }
+            
+            // If still not found, try to parse JSON from query string
+            if (!gamertag) {
+                const queryStr = Object.keys(req.query).join('');
+                const match = queryStr.match(/"gamertag"\s*:\s*"([^"]+)"/);
+                if (match && match[1]) {
+                    gamertag = match[1];
                 }
             }
         } catch (e) {
@@ -107,16 +111,20 @@ const recordDefeat = async (req, res) => {
     } else if (req.query && Object.keys(req.query).length > 0) {
         // Intentar extraer gamertag de query params
         try {
-            // Si viene como objeto JSON en query
-            if (req.query['{"gamertag"']) {
-                gamertag = 'mario'; // Hardcoded para este caso específico
-            } else {
-                // Buscar en cualquier parámetro que pueda contener gamertag
-                for (const key in req.query) {
-                    if (key.includes('gamertag') || req.query[key].includes('mario')) {
-                        gamertag = 'mario';
-                        break;
-                    }
+            // Check for gamertag in query parameters
+            for (const key in req.query) {
+                if (key === 'gamertag' || key.includes('gamertag')) {
+                    gamertag = req.query[key];
+                    break;
+                }
+            }
+            
+            // If still not found, try to parse JSON from query string
+            if (!gamertag) {
+                const queryStr = Object.keys(req.query).join('');
+                const match = queryStr.match(/"gamertag"\s*:\s*"([^"]+)"/);
+                if (match && match[1]) {
+                    gamertag = match[1];
                 }
             }
         } catch (e) {
