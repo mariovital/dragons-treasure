@@ -41,7 +41,7 @@
 ### 🐱‍💻 Clona el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/dragons-treasure.git
+git clone https://github.com/vitalagency/dragons-treasure.git
 cd dragons-treasure
 ```
 
