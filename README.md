@@ -1,35 +1,185 @@
-# Dragon's Treasure Web Service 👨🏻‍💻
 
-# 💎 Aplicación de Inicio de Sesión y Panel de Control
+# 🐉 Dragon's Treasure Aulify Games – Documentación API y Frontend
 
-## 📌 Descripción del Proyecto
+## 🌐 Descripción General
 
-Esta aplicación web moderna y responsiva está diseñada con un enfoque visual contemporáneo inspirado en el estilo *glassmorphism* ✨, brindando una experiencia de usuario limpia, profesional y envolvente. El sistema incluye una interfaz de inicio de sesión 🔐 y un panel de control 📊 completo, ideal para gestionar estadísticas de usuario y datos visuales en un entorno dinámico e intuitivo.
+**Dragon's Treasure** es un proyecto de videojuego desarrollado con **Unity** y respaldado por un servicio backend en **Node.js** con **Express**. Este sistema incluye:
 
-El diseño toma como referencia la estética de interfaces tipo Apple 🍎, utilizando transparencias, desenfoques suaves, tipografía cuidada y componentes estilizados que se adaptan a cualquier tamaño de pantalla 📱💻.
+- 🎮 Una **API RESTful** para el manejo de estadísticas de jugador y autenticación.
+- 🖥️ Un **frontend visual** tipo dashboard para visualizar datos de rendimiento.
 
-> ⚠️ Actualmente, el enfoque del desarrollo está en la construcción de la interfaz visual y los componentes del frontend. La lógica real de autenticación será integrada posteriormente a través de un servicio externo.
-
-## ⭐ Características Principales
-
-- 🔓 **Inicio de sesión atractivo y minimalista** con efectos de vidrio y validación visual de formularios.
-- 📈 **Panel de control completo** que muestra estadísticas, historial de actividad y rankings.
-- 🧩 **Componentes interactivos** como gráficos de juego, indicadores de nivel, listas recientes y tablas de clasificación.
-- 🌗 **Modo claro/oscuro** con un cambio visual dinámico en toda la interfaz.
-- 🎯 **Animaciones sutiles y microinteracciones** que enriquecen la experiencia de uso.
-- 📱 **Diseño totalmente responsivo**, adaptable a dispositivos móviles, tabletas y escritorios.
-
-## 🔄 Flujo del Usuario
-
-1. 🛬 Acceso a través de una pantalla de inicio de sesión.
-2. 🚪 Redirección al panel de control tras autenticación (simulada por ahora).
-3. 🧭 Navegación fluida entre secciones del panel: estadísticas, configuración, historial y más.
-4. 🔁 Posibilidad de cerrar sesión, cambiar entre modos visuales y consultar su progreso.
-
-## 🛠️ Enfoque de Desarrollo
-
-El proyecto se está desarrollando en fases 🧱, comenzando por la estructura base y los componentes visuales. Se están utilizando datos simulados y flujos de prueba para validar la experiencia de usuario. La integración con servicios reales (como autenticación o almacenamiento remoto) está planeada para fases futuras 📅.
+> Este proyecto fue desarrollado con fines educativos 📚 y de aprendizaje práctico sobre integración backend-frontend con videojuegos.
 
 ---
 
-Este proyecto busca ofrecer una experiencia moderna y elegante ✨ tanto en funcionalidad como en diseño 🎨, con especial atención a la usabilidad, accesibilidad y rendimiento 🚀.
+## 🚀 Características Principales
+
+### 🔧 API (Backend)
+
+- 📊 Seguimiento de estadísticas de jugadores (victorias y derrotas)
+- 🔐 Autenticación de usuarios basada en JWT
+- 💾 Almacenamiento seguro en base de datos MySQL
+- 🔌 Integración sencilla vía endpoints RESTful
+
+### 💎 Frontend (Dashboard)
+
+- 📈 Visualización en tiempo real de estadísticas
+- 🌗 Soporte para modo claro/oscuro
+- 🖼️ Interfaz moderna con estilo *glassmorphism*
+- 💡 Interacción fluida y responsiva para escritorio y móvil
+
+---
+
+## 🛠️ Instalación
+
+### 📦 Requisitos Previos
+
+- [Node.js](https://nodejs.org/) (v18+ recomendado)
+- [MySQL](https://www.mysql.com/) (servidor activo)
+- [Vite](https://vitejs.dev/) (instalado globalmente o por proyecto)
+
+### 🐱‍💻 Clona el repositorio
+
+```bash
+git clone https://github.com/tu-usuario/dragons-treasure.git
+cd dragons-treasure
+```
+
+### 🔙 Backend (API)
+
+1. Ve a la carpeta del backend:
+
+```bash
+cd backend
+```
+
+2. Instala dependencias:
+
+```bash
+npm install
+```
+
+3. Crea un archivo `.env` con tus variables (ejemplo):
+
+```
+PORT=3000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=tu_clave
+DB_NAME=dragons_treasure
+JWT_SECRET=secreto_seguro
+```
+
+4. Ejecuta el servidor:
+
+```bash
+npm run dev
+```
+
+---
+
+### 🖼️ Frontend (Dashboard)
+
+1. Ve a la carpeta del frontend:
+
+```bash
+cd ../frontend
+```
+
+2. Instala dependencias:
+
+```bash
+npm install
+```
+
+3. (Opcional) Configura variables si es necesario (por ejemplo, API URL)
+
+4. Ejecuta el servidor de desarrollo:
+
+```bash
+npm run dev
+```
+
+---
+
+## 🔌 Endpoints Principales de la API
+
+### 👤 Gestión de Usuarios
+
+- `GET /usuario/:id` – Obtener información del usuario por ID
+- `POST /usuario` – Crear o recuperar un usuario mediante su gamertag
+
+### 📊 Estadísticas
+
+- `GET /estadistica/:idUser` – Obtener estadísticas del jugador
+- `POST /estadistica/victoria` – Registrar una victoria 🏆
+- `POST /estadistica/derrota` – Registrar una derrota 💀
+
+### 🧪 Testing
+
+- `GET /test` – Verificar funcionamiento del servidor
+- `POST /test-victory` – Probar registro de victoria (sin modificar la base de datos)
+
+---
+
+## 🏗️ Arquitectura
+
+El backend se organiza modularmente en:
+
+- 📁 **Rutas** – Definición de endpoints y métodos HTTP
+- 🧠 **Controladores** – Lógica de negocio y conexión con la base de datos
+- 🛡️ **Middleware** – Validación, autenticación y logging
+- 🔧 **Helpers** – Funciones utilitarias y gestión de conexión a MySQL
+
+---
+
+## 🔄 Integración
+
+Esta API y panel están diseñados para integrarse fácilmente con:
+
+- 🕹️ **Cliente de juego Unity** vía solicitudes HTTP
+- 🗃️ **Base de datos MySQL** para persistencia de datos
+- 🖼️ **Frontend responsivo** para visualización de estadísticas del jugador
+
+---
+
+## 🛡️ Seguridad
+
+El sistema implementa:
+
+- ✅ Autenticación basada en tokens JWT
+- 🔐 Variables de entorno para datos sensibles
+- 🧹 Validación de entradas para evitar ataques por inyección
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+/backend
+│── routes/
+│── controllers/
+│── middleware/
+│── helpers/
+│── database/
+│── index.js
+│── .env
+│── package.json
+
+/frontend
+│── public/
+│── src/
+│   ├── components/
+│   ├── views/
+│   ├── App.jsx
+│   ├── main.jsx
+│── tailwind.config.js
+│── vite.config.js
+│── index.html
+```
+
+---
+
+## 📌 Nota
+
+Este proyecto forma parte del desarrollo del juego **Dragon's Treasure** 🐉 y fue construido con propósitos educativos para Aulify.
