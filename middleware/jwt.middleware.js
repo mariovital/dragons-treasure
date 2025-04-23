@@ -23,4 +23,3 @@ const verifyJWT = (req,res,next )  => {
 middleware.use(verifyJWT)
 
 export{middleware}
-

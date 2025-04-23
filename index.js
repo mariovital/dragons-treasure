@@ -3,7 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import multer from 'multer'
 
-
+import { authRouter } from './routes/auth.js'; // <-- Add this line
 import { router as usuario } from './routes/usuario.js'
 import { router as estadistica } from './routes/estadistica.js'
 
@@ -55,8 +55,9 @@ app.post('/test-victory', (req, res) => {
 });
 
 // Rutas
-app.use('/usuario', usuario)
-app.use('/estadistica', estadistica)
+app.use('/aulifyLogin', authRouter);
+app.use('/estadistica', /* jwtMiddleware, */ estadistica); // Temporarily commented out jwtMiddleware if not defined yet
+app.use('/usuario', usuario);
 
 
 // Ruta Prueba
@@ -64,12 +65,20 @@ app.get('/', (req, res) => {
     res.send(`API Dragon's Treasure`)
 })
 
-// Manejo de errores
-app.use((err, req, res, next) => {
-    console.error('Error:', err);
-    console.error(err.stack)
-    res.status(500).json({ error: 'Error interno del servidor.', details: err.message })
-})
+// Manejo de errores (debe ir al final)
+app.use((err, req, res, next) => { // Ensure 'next' is present
+    console.error('--- Error caught by main error handler: ---');
+    console.error(err); // Log the full error
+    // Check if headers were already sent (e.g., by the controller)
+    if (!res.headersSent) {
+       // Use error status if available, otherwise default to 500
+       res.status(err.status || 500).json({
+           error: err.message || 'Internal Server Error'
+       });
+    }
+    // If headers were sent, we can't send another response,
+    // but the error is logged.
+});
 
 // Iniciar Servidor.
 app.listen(PORT, () => {
