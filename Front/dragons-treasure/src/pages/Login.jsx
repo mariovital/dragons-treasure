@@ -1,5 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -28,11 +29,14 @@ const Login = () => {
   const { darkMode, isTransitioning, transitionDirection } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
+    username: '', // This will be sent as 'email'
     password: '',
     rememberMe: false
   });
-  
+  const [loading, setLoading] = useState(false); // Add loading state
+  const [error, setError] = useState(''); // Add error state
+  const navigate = useNavigate(); // Initialize navigate
+
   const containerRef = useRef(null);
   const mousePosition = useMousePosition();
   const [containerBounds, setContainerBounds] = useState({ x: 0, y: 0, width: 0, height: 0 });
@@ -82,13 +86,44 @@ const Login = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    setError(''); // Clear error on change
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => { // Make handleSubmit async
     e.preventDefault();
-    // Mock authentication - will be replaced with actual auth later
-    console.log('Login attempt with:', formData);
-    // Redirect to dashboard would happen here
+    setLoading(true); // Set loading true
+    setError(''); // Clear previous errors
+
+    try {
+      // Assuming your backend runs on localhost:3000
+      const response = await fetch('http://localhost:3000/aulifyLogin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Send username as email
+        body: JSON.stringify({ email: formData.username, password: formData.password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Login successful (Aulify API returned success)
+        console.log('Login successful:', data);
+        // You might want to store user data or a token here if the API provided one
+        // For now, just redirect to dashboard
+        navigate('/dashboard');
+      } else {
+        // Login failed (Aulify API returned an error or backend had an issue)
+        console.error('Login failed:', data);
+        setError(data.message || data.error || 'Login failed. Please check your credentials.');
+      }
+    } catch (err) {
+      console.error('Network or other error during login:', err);
+      setError('Login failed due to a network error. Please try again.');
+    } finally {
+      setLoading(false); // Set loading false regardless of outcome
+    }
   };
 
   return (
@@ -259,20 +294,6 @@ const Login = () => {
               </div>
             </div>
             
-            <div className="flex items-center mb-8">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                name="rememberMe"
-                className="h-4 w-4 text-primary-blue focus:ring-primary-blue border-gray-300 rounded"
-                checked={formData.rememberMe}
-                onChange={handleChange}
-              />
-              <label htmlFor="rememberMe" className="ml-2 block text-sm">
-                Recuérdame
-              </label>
-            </div>
-            
             {/* Replace the regular button with the WarpSpeedButton */}
             <WarpSpeedButton
               type="submit"
@@ -295,6 +316,44 @@ const Login = () => {
           </div>
         </div>
       </div>
+      {/* Display Error Message */}
+      {error && (
+        <div className="mb-4 text-center text-red-500 text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* REMOVED THIS DUPLICATED SECTION */}
+      {/*
+      <div ref={containerRef} className="relative w-full max-w-md">
+        <div className={`relative z-10 p-8 md:p-10 rounded-3xl shadow-2xl transition-all duration-500 ease-out ${
+          darkMode
+            ? 'bg-gradient-to-br from-[#1E1B2E]/80 to-[#161325]/80 border border-gray-700/50'
+            : 'bg-gradient-to-br from-white/80 to-gray-100/80 border border-white/50'
+        } backdrop-blur-lg animate-containerPop`}>
+
+          <div className="flex justify-between items-center mt-6 text-sm">
+            <a href="#" className={`hover:underline ${darkMode ? 'text-blue-300 hover:text-blue-200' : 'text-primary-blue hover:text-primary-blue-dark'}`}>
+              ¿Olvidaste tu contraseña?
+            </a>
+            <a href="#" className={`hover:underline ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}>
+              ¿Eres Nuevo? Crear una Cuenta
+            </a>
+          </div>
+
+          <div className="absolute bottom-4 right-4">
+            <AnimatedModeToggle />
+          </div>
+
+        </div>
+
+      </div>
+      */}
+
+      {/* Original position of AnimatedModeToggle (REMOVE or comment out) */}
+      {/* <div className="absolute top-4 right-4 z-50">
+        <AnimatedModeToggle />
+      </div> */}
     </div>
   );
 };
