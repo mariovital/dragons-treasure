@@ -1,0 +1,720 @@
+
+.elementosAulify501 {
+    position: absolute;
+    top: 2984.34px;
+    left: 0px;
+    border-radius: 598.5px;
+    width: 6875.9px;
+    height: 4602.1px;
+    object-fit: contain;
+}
+.background {
+    position: absolute;
+    top: -1205px;
+    left: -3931px;
+    width: 6875.9px;
+    height: 4602.1px;
+    display: none;
+}
+.fondo {
+    position: absolute;
+    top: 34px;
+    left: 0px;
+    border-radius: 46px;
+    background-color: #c2c2c2;
+    width: 1587px;
+    height: 1077px;
+    opacity: 0.22;
+}
+.elementosAulify351 {
+    position: absolute;
+    top: 25px;
+    left: 0px;
+    width: 175px;
+    height: 169.6px;
+    object-fit: contain;
+}
+.elementosAulify271 {
+    position: absolute;
+    top: 46px;
+    left: 1322px;
+    width: 143.7px;
+    height: 137.8px;
+    object-fit: contain;
+}
+.elementosAulify451 {
+    position: absolute;
+    top: 53px;
+    left: 1389px;
+    width: 128.8px;
+    height: 114.4px;
+    object-fit: contain;
+}
+.elementosAulify211 {
+    position: absolute;
+    top: 27px;
+    left: 1034px;
+    width: 113px;
+    height: 120px;
+    object-fit: cover;
+}
+.elementosAulify071 {
+    position: absolute;
+    top: 0px;
+    left: 349px;
+    width: 225.9px;
+    height: 229.8px;
+    object-fit: contain;
+}
+.elementosAulify381 {
+    position: absolute;
+    top: 62px;
+    left: 349px;
+    width: 69px;
+    height: 73px;
+    object-fit: cover;
+}
+.elementosAulify281 {
+    position: absolute;
+    top: 110px;
+    left: 1210px;
+    width: 130px;
+    height: 138px;
+    object-fit: cover;
+}
+.elementosAulify431 {
+    position: absolute;
+    top: 79px;
+    left: 941px;
+    width: 141px;
+    height: 151px;
+    object-fit: cover;
+}
+.elementosAulify171 {
+    position: absolute;
+    top: 8px;
+    left: 774px;
+    width: 169.4px;
+    height: 162px;
+    object-fit: contain;
+}
+.elementosAulify411 {
+    position: absolute;
+    top: 53px;
+    left: 676px;
+    width: 64px;
+    height: 68px;
+    object-fit: cover;
+}
+.elementosAulify111 {
+    position: absolute;
+    top: 62px;
+    left: 626px;
+    width: 99px;
+    height: 105px;
+    object-fit: cover;
+}
+.elementosAulify {
+    position: absolute;
+    top: 0px;
+    left: 57px;
+    width: 1517.8px;
+    height: 248px;
+}
+.fondosChild {
+    position: absolute;
+    top: 164px;
+    left: 126px;
+    background-color: #eaeaea;
+    width: 1440px;
+    height: 904px;
+}
+.fondos {
+    position: absolute;
+    top: -44px;
+    left: -126px;
+    width: 1587px;
+    height: 1111px;
+}
+.dashboard1 {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    font-weight: 600;
+    display: inline-block;
+    width: 243px;
+    height: 38px;
+}
+.login {
+    position: absolute;
+    top: 142px;
+    left: 312px;
+    width: 243px;
+    height: 38px;
+}
+.tiempoDeJuego1 {
+    position: absolute;
+    top: 0px;
+    left: 44px;
+    font-weight: 600;
+    display: inline-block;
+    width: 352px;
+    height: 38px;
+}
+.horizontalLinesIcon {
+    position: absolute;
+    top: 6.68px;
+    left: 17px;
+    width: 454px;
+    height: 227.1px;
+}
+.verticalLinesIcon {
+    position: absolute;
+    top: 6.23px;
+    left: 17.5px;
+    width: 453px;
+    height: 228px;
+}
+.div {
+    position: absolute;
+    top: 227.07px;
+    left: 0px;
+    display: flex;
+    align-items: center;
+    width: 7px;
+    height: 12.5px;
+}
+.div1 {
+    position: absolute;
+    top: 170.3px;
+    left: 0px;
+    display: flex;
+    align-items: center;
+    width: 7px;
+    height: 12.5px;
+}
+.div2 {
+    position: absolute;
+    top: 113.53px;
+    left: 0px;
+    display: flex;
+    align-items: center;
+    width: 7px;
+    height: 12.5px;
+}
+.div3 {
+    position: absolute;
+    top: 56.77px;
+    left: 0px;
+    display: flex;
+    align-items: center;
+    width: 7px;
+    height: 12.5px;
+}
+.div4 {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    display: flex;
+    align-items: center;
+    width: 7px;
+    height: 12.5px;
+}
+.leftText {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 7px;
+    height: 239.5px;
+}
+.lunes {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 33px;
+    height: 12.5px;
+}
+.martes {
+    position: absolute;
+    top: 0px;
+    left: 72.67px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 38px;
+    height: 12.5px;
+}
+.mircoles {
+    position: absolute;
+    top: 0px;
+    left: 140.83px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 53px;
+    height: 12.5px;
+}
+.jueves {
+    position: absolute;
+    top: 0px;
+    left: 225.5px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 35px;
+    height: 12.5px;
+}
+.viernes {
+    position: absolute;
+    top: 0px;
+    left: 299.67px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 39px;
+    height: 12.5px;
+}
+.sbado {
+    position: absolute;
+    top: 0px;
+    left: 374.33px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 40px;
+    height: 12.5px;
+}
+.domingo {
+    position: absolute;
+    top: 0px;
+    left: 446px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 48px;
+    height: 12.5px;
+}
+.bottomText {
+    position: absolute;
+    top: 239.53px;
+    left: 1px;
+    width: 494px;
+    height: 12.5px;
+    text-align: center;
+}
+.lineArea {
+    position: absolute;
+    top: 6.23px;
+    left: 17px;
+    width: 454px;
+    height: 228px;
+}
+.pointsIcon {
+    position: absolute;
+    top: 4.01px;
+    left: 14.5px;
+    width: 459px;
+    height: 199.8px;
+}
+.nbchartsLinechats {
+    position: absolute;
+    top: 62px;
+    left: 0px;
+    width: 495px;
+    height: 252px;
+    text-align: right;
+    font-size: 12px;
+    color: #333;
+    font-family: Roboto;
+}
+.tiempoDeJuego {
+    position: absolute;
+    top: 167px;
+    left: 906px;
+    width: 495px;
+    height: 314px;
+}
+.fondo1 {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 46px;
+    background-color: rgba(194, 194, 194, 0.3);
+    width: 321.2px;
+    height: 421px;
+    opacity: 0.2;
+}
+.sof {
+    position: absolute;
+    top: 157.65px;
+    left: 45.63px;
+    display: inline-block;
+    width: 229.7px;
+    height: 30.4px;
+}
+.diana {
+    position: absolute;
+    top: 215px;
+    left: 45.22px;
+    display: inline-block;
+    width: 241px;
+    height: 30px;
+}
+.santiago {
+    position: absolute;
+    top: 271px;
+    left: 33.22px;
+    display: inline-block;
+    width: 276px;
+    height: 31px;
+}
+.hugo {
+    position: absolute;
+    top: 329.63px;
+    left: 45.63px;
+    display: inline-block;
+    width: 229.7px;
+    height: 30.4px;
+}
+.luan {
+    position: absolute;
+    top: 101.22px;
+    left: 45.63px;
+    display: inline-block;
+    width: 229.7px;
+    height: 30.4px;
+}
+.leaderboard1 {
+    position: absolute;
+    top: 34px;
+    left: 33.22px;
+    font-size: 36px;
+    font-weight: 600;
+    display: inline-block;
+    width: 253px;
+    height: 30px;
+}
+.leaderboard {
+    position: absolute;
+    top: 572px;
+    left: 1076px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    width: 321.2px;
+    height: 421px;
+    font-size: 24px;
+}
+.dashboardChild {
+    position: absolute;
+    top: 205px;
+    left: 871px;
+    width: 543px;
+    height: 276px;
+    overflow: hidden;
+}
+.fondo2 {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 46px;
+    background-color: rgba(255, 255, 255, 0.3);
+    width: 290px;
+    height: 1006px;
+}
+.dashboard2 {
+    position: absolute;
+    top: 8px;
+    left: 17px;
+    font-weight: 600;
+    display: inline-block;
+    width: 204px;
+    height: 38px;
+}
+.dashboardIcon {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 40px;
+    height: 40px;
+}
+.dashboardText {
+    position: absolute;
+    top: 428px;
+    left: 36px;
+    width: 221px;
+    height: 46px;
+}
+.estadsticas1 {
+    position: absolute;
+    top: 1px;
+    left: 45px;
+    font-weight: 600;
+}
+.queryStatsIcon {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 30px;
+    height: 30px;
+}
+.estadsticas {
+    position: absolute;
+    top: 552px;
+    left: 33px;
+    width: 224px;
+    height: 30px;
+}
+.configuracin {
+    position: absolute;
+    top: 0px;
+    left: 39px;
+    font-weight: 600;
+}
+.configuracion {
+    position: absolute;
+    top: 665px;
+    left: 33px;
+    width: 232px;
+    height: 30px;
+}
+.salir1 {
+    position: absolute;
+    top: 0px;
+    left: 45px;
+    font-weight: 600;
+}
+.salir {
+    position: absolute;
+    top: 943px;
+    left: 62px;
+    width: 120px;
+    height: 30px;
+}
+.usuario {
+    position: absolute;
+    top: 270px;
+    left: 93px;
+    font-weight: 600;
+}
+.sticker031Icon {
+    position: absolute;
+    top: 133px;
+    left: 94px;
+    width: 101px;
+    height: 118px;
+    object-fit: cover;
+}
+.recurso121001 {
+    position: absolute;
+    top: 37px;
+    left: 66px;
+    width: 157px;
+    height: 68px;
+    object-fit: cover;
+}
+.bienvenido {
+    position: absolute;
+    top: 251px;
+    left: 94px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #626262;
+}
+.darkMode {
+    position: absolute;
+    top: 849px;
+    left: 112px;
+    font-size: 14px;
+    font-weight: 600;
+}
+.darkModeOutlineIcon {
+    position: absolute;
+    top: 834px;
+    left: 63px;
+    width: 30px;
+    height: 64px;
+}
+.dashboardUser {
+    position: absolute;
+    top: 9px;
+    left: 16px;
+    width: 290px;
+    height: 1006px;
+    font-size: 24px;
+}
+.fondo3 {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 46px;
+    background-color: rgba(194, 194, 194, 0.3);
+    width: 529px;
+    height: 211px;
+    opacity: 0.2;
+}
+.nivel1 {
+    position: absolute;
+    top: 33.73px;
+    left: 71px;
+    font-weight: 600;
+    display: inline-block;
+    width: 112px;
+    height: 30.9px;
+}
+.div5 {
+    position: absolute;
+    top: 106px;
+    left: 115px;
+    font-weight: 600;
+    display: inline-block;
+    width: 23px;
+    height: 30.9px;
+}
+.div6 {
+    position: absolute;
+    top: 106px;
+    left: 340px;
+    font-weight: 600;
+    display: inline-block;
+    width: 23px;
+    height: 30.9px;
+}
+.starsIcon {
+    position: absolute;
+    top: 94px;
+    left: 151px;
+    width: 64px;
+    height: 64px;
+}
+.puntosParaSubir {
+    position: absolute;
+    top: 175px;
+    left: 183px;
+    font-size: 15px;
+    font-weight: 600;
+}
+.arrowRightAltRoundedIcon {
+    position: absolute;
+    top: 94px;
+    left: 240px;
+    width: 64px;
+    height: 64px;
+}
+.awardStarRounded {
+    position: absolute;
+    top: 97px;
+    left: 409px;
+    width: 64px;
+    height: 64px;
+}
+.vectorIcon {
+    position: absolute;
+    height: 26.54%;
+    width: 10.59%;
+    top: 46.92%;
+    right: 18.9%;
+    bottom: 26.54%;
+    left: 70.51%;
+    max-width: 100%;
+    overflow: hidden;
+    max-height: 100%;
+}
+.nivel {
+    position: absolute;
+    top: 210px;
+    left: 342px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    width: 529px;
+    height: 211px;
+}
+.fondo4 {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 46px;
+    background-color: rgba(194, 194, 194, 0.3);
+    width: 721px;
+    height: 465px;
+    opacity: 0.2;
+}
+.span {
+    white-space: pre-wrap;
+}
+.span1 {
+    font-size: 36px;
+}
+.div7 {
+    position: absolute;
+    top: 107px;
+    left: 236px;
+    display: inline-block;
+    width: 249px;
+    height: 42px;
+}
+.div8 {
+    position: absolute;
+    top: 238px;
+    left: 238px;
+    display: inline-block;
+    width: 249px;
+    height: 42px;
+}
+.div9 {
+    position: absolute;
+    top: 311px;
+    left: 238px;
+    display: inline-block;
+    width: 249px;
+    height: 42px;
+}
+.div10 {
+    position: absolute;
+    top: 383px;
+    left: 238px;
+    display: inline-block;
+    width: 249px;
+    height: 42px;
+}
+.div11 {
+    position: absolute;
+    top: 176px;
+    left: 233px;
+    display: inline-block;
+    width: 249px;
+    height: 42px;
+}
+.ltimas5Partidas {
+    position: absolute;
+    top: 36px;
+    left: 151px;
+    font-size: 36px;
+    font-weight: 600;
+}
+.ultimas5Partidas {
+    position: absolute;
+    top: 528px;
+    left: 342px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    width: 721px;
+    height: 465px;
+    font-size: 24px;
+}
+.dashboard {
+    width: 100%;
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.9);
+    height: 1024px;
+    overflow: hidden;
+    text-align: center;
+    font-size: 36px;
+    color: #000;
+    font-family: 'SF Mono';
+}
+
+
