@@ -1,17 +1,34 @@
+import { Router } from 'express';
+// Ensure all required controllers are imported
+import { 
+    getUltimasPartidas, 
+    getLeaderboard, 
+    getTiempoJugado,
+    getStat, 
+    recordVictory, 
+    recordDefeat 
+} from '../controllers/estadistica.controller.js';
 
-import express from 'express'
-const router = express.Router()
+const router = Router();
 
-import { getStat, recordDefeat, recordVictory } from '../controllers/estadistica.controller.js'
+// --- Define Specific Routes FIRST ---
 
-// Add a simple test route to verify the router is working
-router.get('/test', (req, res) => {
-    console.log("Test route hit");
-    res.json({ message: "Estadistica router is working" });
-});
+// GET leaderboard - Most specific GET route
+router.get('/leaderboard', getLeaderboard); 
 
-router.get('/:idUser', getStat)
-router.post('/victoria', recordVictory)
-router.post('/derrota', recordDefeat)
+// GET recent games - Specific path segment before parameter
+router.get('/ultimas-partidas/:idUsuario', getUltimasPartidas); 
 
-export { router }
+// GET time played per day for a user (NEW ROUTE)
+router.get('/tiempo-jugado/:idUsuario', getTiempoJugado); 
+
+// POST victory/defeat
+router.post('/victory', recordVictory);
+router.post('/defeat', recordDefeat);
+
+// --- Define Generic Routes LAST ---
+
+// GET ALL STATS for a specific user - Keep this last among GET routes
+router.get('/stats/:idUsuario', getStat); 
+
+export { router };

@@ -139,5 +139,120 @@ const recordDefeat = async (req, res) => {
     }
 };
 
+// --- Obtener Últimas 5 Partidas del Usuario ---
+export const getUltimasPartidas = async (req, res, next) => {
+    const { idUsuario } = req.params;
+
+    if (!idUsuario) {
+        return res.status(400).json({ success: false, message: 'User ID is required' });
+    }
+
+    try {
+        console.log(`Fetching last 5 games for user ID: ${idUsuario}`);
+        const query = `
+            SELECT 
+                victorias, 
+                derrotas, 
+                TIME_TO_SEC(duracion_partida) as time 
+            FROM estadistica 
+            WHERE idUsuario = ? 
+            ORDER BY fecha_hora DESC 
+            LIMIT 5;
+        `;
+        const [results] = await pool.query(query, [idUsuario]);
+
+        // Map results to determine outcome based on victorias/derrotas
+        const formattedResults = results.map(row => ({
+            // Determine outcome: If victorias > 0, it's a win, otherwise a loss
+            outcome: row.victorias > 0 ? 'victory' : 'defeat',
+            time: row.time // Already selected as time in seconds
+        }));
+
+        console.log(`Found ${formattedResults.length} recent games for user ID: ${idUsuario}`);
+        res.json(formattedResults);
+
+    } catch (error) {
+        console.error(`Error fetching recent games for user ID ${idUsuario}:`, error);
+        next(error); // Pass error to the central handler
+    }
+};
+
+// --- Obtener Leaderboard (Top 5 Victorias más Rápidas) ---
+export const getLeaderboard = async (req, res, next) => {
+    try {
+        console.log("Fetching leaderboard data...");
+        const query = `
+            SELECT 
+                u.gamertag, 
+                TIME_TO_SEC(e.duracion_partida) as time
+            FROM estadistica e
+            JOIN usuario u ON e.idUsuario = u.id
+            WHERE e.victorias > 0 AND e.duracion_partida IS NOT NULL -- Only wins with a valid duration
+            ORDER BY e.duracion_partida ASC 
+            LIMIT 5;
+        `;
+        const [results] = await pool.query(query);
+
+        // Map results to add rank and use gamertag as name
+        const formattedResults = results.map((row, index) => ({
+            rank: index + 1,
+            name: row.gamertag, // Use gamertag as requested
+            time: row.time // Already selected as time in seconds
+        }));
+
+        console.log(`Leaderboard data fetched: ${formattedResults.length} players.`);
+        res.json(formattedResults);
+
+    } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+        next(error); // Pass error to the central handler
+    }
+};
+
+// --- Obtener Tiempo Jugado por Día (Últimos 7 días) ---
+export const getTiempoJugado = async (req, res, next) => {
+    const { idUsuario } = req.params;
+
+    if (!idUsuario) {
+        return res.status(400).json({ success: false, message: 'User ID is required' });
+    }
+
+    try {
+        console.log(`Fetching time played per day for user ID: ${idUsuario} (Last 7 days)`);
+        const query = `
+            SELECT 
+                DATE(fecha_hora) as game_date,  -- Extract only the date part
+                SUM(TIME_TO_SEC(duracion_partida)) as total_seconds -- Sum duration in seconds
+            FROM estadistica 
+            WHERE 
+                idUsuario = ? 
+                AND fecha_hora >= CURDATE() - INTERVAL 6 DAY -- Filter for last 7 days (including today)
+            GROUP BY 
+                game_date -- Group by the date
+            ORDER BY 
+                game_date ASC; -- Order by date ascending
+        `;
+        const [results] = await pool.query(query, [idUsuario]);
+
+        console.log(`Found ${results.length} daily time records for user ${idUsuario}.`);
+        
+        // Optional: Format date for consistency if needed, or convert seconds to hours here
+        // For now, just return date and total seconds
+        const formattedResults = results.map(row => ({
+            date: row.game_date.toISOString().split('T')[0], // Format date as YYYY-MM-DD string
+            totalSeconds: parseInt(row.total_seconds, 10) || 0 // Ensure it's a number
+        }));
+
+        res.status(200).json(formattedResults); // Send the aggregated data
+
+    } catch (error) {
+        console.error('Error fetching time played data:', error);
+        // Consider sending a more specific error message if possible
+        res.status(500).json({ success: false, message: 'Error fetching time played data' });
+        // Forward the error to a central error handler if you have one
+        // next(error); 
+    }
+};
+
 // Export the updated functions
 export { getStat, recordVictory, recordDefeat };

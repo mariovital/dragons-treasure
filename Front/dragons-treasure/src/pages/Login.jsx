@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { Eye, EyeOff } from 'lucide-react';
@@ -89,40 +88,52 @@ const Login = () => {
     setError(''); // Clear error on change
   };
 
-  const handleSubmit = async (e) => { // Make handleSubmit async
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Set loading true
-    setError(''); // Clear previous errors
+    setLoading(true);
+    setError('');
 
     try {
-      // Assuming your backend runs on localhost:3000
-      const response = await fetch('http://localhost:3000/aulifyLogin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Send username as email
-        body: JSON.stringify({ email: formData.username, password: formData.password }),
-      });
+        // Llama a tu backend local
+        const response = await fetch('http://localhost:3000/aulifyLogin', { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: formData.username, password: formData.password }),
+        });
 
-      const data = await response.json();
+        // Lee la respuesta JSON de TU backend
+        const data = await response.json(); 
 
-      if (response.ok) {
-        // Login successful (Aulify API returned success)
-        console.log('Login successful:', data);
-        // You might want to store user data or a token here if the API provided one
-        // For now, just redirect to dashboard
-        navigate('/dashboard');
-      } else {
-        // Login failed (Aulify API returned an error or backend had an issue)
-        console.error('Login failed:', data);
-        setError(data.message || data.error || 'Login failed. Please check your credentials.');
-      }
+        // Verifica la propiedad 'success' de la respuesta de tu backend
+        if (data.success) { 
+            // Login exitoso
+            console.log('Local backend login successful:', data);
+
+            // *** Almacenar Token de Aulify ***
+            // Decide si usar localStorage (persiste) o sessionStorage (se borra al cerrar)
+            localStorage.setItem('aulifyToken', data.token); 
+            // También podrías guardar otros datos del usuario si son útiles globalmente
+            localStorage.setItem('userData', JSON.stringify(data.user));
+
+            console.log('Aulify Token stored.');
+
+            // Redirigir al dashboard
+            navigate('/dashboard');
+
+        } else {
+            // Login fallido (tu backend reenvió el error de Aulify o tuvo un error propio)
+            console.error('Local backend login failed:', data);
+            // Usa el mensaje de error de la respuesta de tu backend
+            setError(data.message || 'Login failed. Please check your credentials.'); 
+        }
     } catch (err) {
-      console.error('Network or other error during login:', err);
-      setError('Login failed due to a network error. Please try again.');
+        // ... manejo de error de red ...
+        console.error('Network or other error during login:', err);
+        setError('Login failed due to a network error. Please try again.');
     } finally {
-      setLoading(false); // Set loading false regardless of outcome
+        setLoading(false);
     }
   };
 
@@ -240,7 +251,6 @@ const Login = () => {
             />
           </div>
           
-          {/* Rest of the component remains the same */}
           {/* Updated Login heading with yellow background and black dot */}
           <h1 className="text-3xl font-bold mb-12 text-center relative inline-block w-full">
             <span className="relative z-10">Login</span>
@@ -248,7 +258,13 @@ const Login = () => {
             <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-primary-yellow h-4 w-32 -z-0 opacity-50 rounded-sm"></span>
           </h1>
           
-          {/* Rest of the form remains unchanged */}
+          {/* Display Error Message Inside Card, Before Inputs/Button - IMPROVED VISIBILITY */}
+          {error && (
+            <div className="mb-4 text-center text-sm font-semibold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/50 p-3 rounded-lg border border-red-400 dark:border-red-600/50 shadow-md">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
               <label htmlFor="username" className="block text-sm font-medium mb-1">
@@ -316,44 +332,6 @@ const Login = () => {
           </div>
         </div>
       </div>
-      {/* Display Error Message */}
-      {error && (
-        <div className="mb-4 text-center text-red-500 text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* REMOVED THIS DUPLICATED SECTION */}
-      {/*
-      <div ref={containerRef} className="relative w-full max-w-md">
-        <div className={`relative z-10 p-8 md:p-10 rounded-3xl shadow-2xl transition-all duration-500 ease-out ${
-          darkMode
-            ? 'bg-gradient-to-br from-[#1E1B2E]/80 to-[#161325]/80 border border-gray-700/50'
-            : 'bg-gradient-to-br from-white/80 to-gray-100/80 border border-white/50'
-        } backdrop-blur-lg animate-containerPop`}>
-
-          <div className="flex justify-between items-center mt-6 text-sm">
-            <a href="#" className={`hover:underline ${darkMode ? 'text-blue-300 hover:text-blue-200' : 'text-primary-blue hover:text-primary-blue-dark'}`}>
-              ¿Olvidaste tu contraseña?
-            </a>
-            <a href="#" className={`hover:underline ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}>
-              ¿Eres Nuevo? Crear una Cuenta
-            </a>
-          </div>
-
-          <div className="absolute bottom-4 right-4">
-            <AnimatedModeToggle />
-          </div>
-
-        </div>
-
-      </div>
-      */}
-
-      {/* Original position of AnimatedModeToggle (REMOVE or comment out) */}
-      {/* <div className="absolute top-4 right-4 z-50">
-        <AnimatedModeToggle />
-      </div> */}
     </div>
   );
 };

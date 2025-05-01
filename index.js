@@ -1,4 +1,4 @@
-
+import 'dotenv/config'; // Load .env variables
 import express from 'express'
 import cors from 'cors'
 import multer from 'multer'
@@ -6,25 +6,48 @@ import multer from 'multer'
 import { authRouter } from './routes/auth.js'; // <-- Add this line
 import { router as usuario } from './routes/usuario.js'
 import { router as estadistica } from './routes/estadistica.js'
+import { verifyTokenPresence } from './middleware/verifyTokenPresence.js'; // Import the new middleware
 
 const app = express()
 const PORT = process.env.PORT || 3000
 
-// Add more detailed request logging
+// --- CORS Configuration ---
+// Define allowed origins
+const allowedOrigins = ['http://localhost:5173']; // Add your frontend's origin
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true, // If you need to handle cookies or authorization headers
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+// Use configured CORS middleware *before* your routes
+app.use(cors(corsOptions));
+
+// Add more detailed request logging (optional, but helpful for debugging)
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    console.log('Headers:', req.headers);
-    if (req.method === 'POST') {
-        console.log('Body:', req.body);
+    // Log body ONLY if content-type is JSON to avoid issues with other types
+    if (req.headers['content-type'] === 'application/json') {
+        console.log('Body:', req.body); // Log body *after* express.json potentially runs
     }
     next();
 });
 
 // Configure middleware - order matters
+// Ensure JSON parser runs early, BEFORE routes that need req.body
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
-app.use(cors())
-app.use(multer().array())
+// REMOVE global multer - Apply it only to specific routes needing multipart/form-data
+// app.use(multer().array()) 
 
 // Add a test route to verify the server is working
 app.get('/test', (req, res) => {
@@ -57,7 +80,7 @@ app.post('/test-victory', (req, res) => {
 
 // Rutas
 app.use('/aulifyLogin', authRouter);
-app.use('/estadistica', /* jwtMiddleware, */ estadistica); // Temporarily commented out jwtMiddleware if not defined yet
+app.use('/estadistica', verifyTokenPresence, estadistica);
 app.use('/usuario', usuario);
 
 

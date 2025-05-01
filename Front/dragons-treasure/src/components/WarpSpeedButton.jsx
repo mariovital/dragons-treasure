@@ -213,17 +213,20 @@ const WarpSpeedButton = ({ children, onClick, className, type = "button" }) => {
       
       particles.forEach((particle) => {
         const angle = parseFloat(particle.dataset.angle);
-        const distance = parseFloat(particle.dataset.distance) * 1.5;
-        const duration = parseFloat(particle.dataset.duration) * 0.7;
+        const endDistance = parseFloat(particle.dataset.endDistance) || 0;
+        const duration = (parseFloat(particle.dataset.duration) || 1) * 0.7;
         
-        // Calculate end position based on angle and distance
-        const endX = Math.cos(angle * (Math.PI / 180)) * distance;
-        const endY = Math.sin(angle * (Math.PI / 180)) * distance;
+        const burstMultiplier = 2.0;
+        const endX = Math.cos(angle * (Math.PI / 180)) * endDistance * burstMultiplier;
+        const endY = Math.sin(angle * (Math.PI / 180)) * endDistance * burstMultiplier;
         
+        const startX = parseFloat(particle.dataset.startX) || 0;
+        const startY = parseFloat(particle.dataset.startY) || 0;
+
         particle.animate(
           [
             { 
-              transform: 'translate(-50%, -50%)',
+              transform: `translate(calc(-50% + ${startX}px), calc(-50% + ${startY}px))`,
               opacity: 0
             },
             { 
@@ -247,12 +250,6 @@ const WarpSpeedButton = ({ children, onClick, className, type = "button" }) => {
   
   const handleMouseUp = () => {
     setIsClicking(false);
-  };
-  
-  const handleClick = (e) => {
-    if (onClick) {
-      onClick(e);
-    }
   };
   
   return (
@@ -280,7 +277,7 @@ const WarpSpeedButton = ({ children, onClick, className, type = "button" }) => {
       <button
         ref={buttonRef}
         type={type}
-        onClick={handleClick}
+        onClick={onClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}
