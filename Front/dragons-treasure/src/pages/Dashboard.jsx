@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -75,17 +75,18 @@ const Dashboard = () => {
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
   const [errorRecent, setErrorRecent] = useState(null);
   const [errorLeaderboard, setErrorLeaderboard] = useState(null);
-  const [userInfo, setUserInfo] = useState(null); // Initialize userInfo as null
+  const [userInfo, setUserInfo] = useState(null);
 
   // --- NEW State for Time Played Chart ---
   const [timePlayedChartData, setTimePlayedChartData] = useState([]);
-  const [loadingTimePlayed, setLoadingTimePlayed] = useState(true); // Start loading
+  const [loadingTimePlayed, setLoadingTimePlayed] = useState(true);
   const [errorTimePlayed, setErrorTimePlayed] = useState(null);
-  // --- End NEW State ---
 
-  // Placeholder for the logged-in user's ID
-  // Replace this with your actual way of getting the user ID (e.g., from auth context)
-  const currentUserId = 1; 
+  // Ref to track if initial data fetch has been performed for the current user
+  const hasFetchedData = useRef(false);
+
+  // Placeholder for the logged-in user's ID -- REMOVED, now from userInfo
+  // const currentUserId = 1; 
 
   // Collection of all 11 Elementos_Aulify assets
   const elementosAulify = [
@@ -93,6 +94,91 @@ const Dashboard = () => {
     elemento5, elemento6, elemento7, elemento8,
     elemento9, elemento10, elemento11
   ];
+
+  // --- Refactored Data Fetching Logic --- 
+  // useCallback ensures this function reference is stable unless dependencies change
+  const fetchDashboardData = useCallback(async () => {
+    const token = localStorage.getItem('aulifyToken');
+    const currentUserId = userInfo?.id;
+
+    // Exit if essential data is missing
+    if (!currentUserId || !token) {
+      console.log("[fetchDashboardData] Skipping: Missing userId or token.");
+      // Ensure loading is off if we skip
+      setLoadingRecent(false);
+      setLoadingLeaderboard(false);
+      setLoadingTimePlayed(false);
+      return;
+    }
+
+    console.log(`[fetchDashboardData] Fetching all data for user ${currentUserId}...`);
+    setLoadingRecent(true);
+    setLoadingLeaderboard(true);
+    setLoadingTimePlayed(true);
+    setErrorRecent(null);
+    setErrorLeaderboard(null);
+    setErrorTimePlayed(null);
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+
+    try {
+      const results = await Promise.allSettled([
+          fetch(`http://localhost:3000/estadistica/ultimas-partidas/${currentUserId}`, { method: 'GET', headers: headers }),
+          fetch('http://localhost:3000/estadistica/leaderboard', { method: 'GET', headers: headers }),
+          fetch(`http://localhost:3000/estadistica/tiempo-jugado/${currentUserId}`, { method: 'GET', headers: headers })
+      ]);
+      console.log("[fetchDashboardData] All fetches completed.");
+
+      // Process results (simplified - assumes same processing as before)
+      // Recent Games
+      const recentResult = results[0];
+      if (recentResult.status === 'fulfilled' && recentResult.value.ok) {
+          setRecentGamesData(await recentResult.value.json());
+      } else {
+          const status = recentResult.status === 'fulfilled' ? recentResult.value.status : 'rejected';
+          setErrorRecent(`Failed (${status})`); 
+          console.error("Error fetching recent games:", recentResult.status === 'rejected' ? recentResult.reason : await recentResult.value.text());
+      }
+      // Leaderboard
+      const leaderboardResult = results[1];
+       if (leaderboardResult.status === 'fulfilled' && leaderboardResult.value.ok) {
+          setLeaderboardData(await leaderboardResult.value.json());
+      } else {
+           const status = leaderboardResult.status === 'fulfilled' ? leaderboardResult.value.status : 'rejected';
+          setErrorLeaderboard(`Failed (${status})`);
+          console.error("Error fetching leaderboard:", leaderboardResult.status === 'rejected' ? leaderboardResult.reason : await leaderboardResult.value.text());
+      }
+      // Time Played
+      const timePlayedResult = results[2];
+       if (timePlayedResult.status === 'fulfilled' && timePlayedResult.value.ok) {
+          const data = await timePlayedResult.value.json();
+          const transformedData = data.map(item => ({
+              day: new Date(item.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short' }),
+              hours: parseFloat((item.totalSeconds / 3600).toFixed(1))
+          }));
+          setTimePlayedChartData(transformedData);
+      } else {
+           const status = timePlayedResult.status === 'fulfilled' ? timePlayedResult.value.status : 'rejected';
+          setErrorTimePlayed(`Failed (${status})`);
+          console.error("Error fetching time played:", timePlayedResult.status === 'rejected' ? timePlayedResult.reason : await timePlayedResult.value.text());
+      }
+
+    } catch (error) {
+      console.error("[fetchDashboardData] Unexpected error:", error);
+      setErrorRecent('Fetch error');
+      setErrorLeaderboard('Fetch error');
+      setErrorTimePlayed('Fetch error');
+    } finally {
+      console.log("[fetchDashboardData] Setting loading states to false.");
+      setLoadingRecent(false);
+      setLoadingLeaderboard(false);
+      setLoadingTimePlayed(false);
+    }
+  }, [userInfo]); // Depends on userInfo to get the correct ID
+  // --- End Refactored Fetch Logic ---
 
   // --- Effect 1: Get User Info and Token on Mount ---
   useEffect(() => {
@@ -103,25 +189,32 @@ const Dashboard = () => {
     if (storedUserData) {
         try {
             const parsedData = JSON.parse(storedUserData);
-            if (parsedData && parsedData.id) { // Ensure parsed data has an ID
-                console.log("[Effect 1] User data FOUND and parsed, setting state:", parsedData);
-                setUserInfo(parsedData); // Store user data in state
+            if (parsedData && parsedData.id && parsedData.nivel !== undefined && parsedData.progreso !== undefined) { 
+                console.log("[Effect 1] User data FOUND, setting state:", parsedData);
+                setUserInfo(parsedData);
+                hasFetchedData.current = false; // Reset fetch flag when user data is loaded/changed
             } else {
-                console.error("[Effect 1] Parsed user data is invalid or missing ID.");
+                console.error("[Effect 1] Parsed user data invalid/missing fields.");
+                setUserInfo(null); // Ensure userInfo is null if data is bad
+                hasFetchedData.current = false;
                 setErrorRecent("Invalid user data in storage.");
                 setErrorLeaderboard("Invalid user data in storage.");
                 setLoadingRecent(false); // Stop loading if data is bad
                 setLoadingLeaderboard(false);
             }
         } catch (e) {
-            console.error("[Effect 1] Failed to parse user data from localStorage", e);
-            setErrorRecent("Corrupt user data found.");
-            setErrorLeaderboard("Corrupt user data found.");
-            setLoadingRecent(false); // Stop loading on parse error
-            setLoadingLeaderboard(false);
+             console.error("[Effect 1] Failed to parse user data", e);
+             setUserInfo(null); // Ensure userInfo is null on error
+             hasFetchedData.current = false;
+             setErrorRecent("Corrupt user data found.");
+             setErrorLeaderboard("Corrupt user data found.");
+             setLoadingRecent(false); // Stop loading on parse error
+             setLoadingLeaderboard(false);
         }
     } else {
         console.warn("[Effect 1] User data NOT found in localStorage.");
+        setUserInfo(null); // Ensure userInfo is null if not found
+        hasFetchedData.current = false;
         setErrorRecent("User data not found. Please login again.");
         setErrorLeaderboard("User data not found. Please login again.");
         setLoadingRecent(false); // Stop loading if no user data
@@ -352,167 +445,40 @@ const Dashboard = () => {
     };
   }, [backgroundElements.length]);
 
-  // --- Effect 3: Fetch data (depends on userInfo state) ---
+  // --- Effect 3: Initial Data Fetch (depends on fetchDashboardData) ---
   useEffect(() => {
-    console.log("[Effect 3] Running: Checking userInfo state:", userInfo);
-    const token = localStorage.getItem('aulifyToken');
-    const currentUserId = userInfo?.id; // Get ID from potentially updated state
-
-    // --- Exit conditions --- 
-    if (!currentUserId) {
-        console.log("[Effect 3] Skipping fetch: User ID is missing from state.");
-        if (!loadingRecent && !loadingLeaderboard && !loadingTimePlayed) return;
-        setLoadingRecent(false);
-        setLoadingLeaderboard(false);
-        setLoadingTimePlayed(false); // Ensure this stops too
-        return; 
+    // Fetch data ONLY if userInfo is loaded and we haven't fetched yet
+    if (userInfo && !hasFetchedData.current) {
+        console.log("[Effect 3] User info loaded, performing initial fetch...");
+        fetchDashboardData();
+        hasFetchedData.current = true; // Mark initial fetch as done
     }
-    if (!token) {
-         console.log("[Effect 3] Skipping fetch: Token is missing from localStorage.");
-         setLoadingRecent(false);
-         setLoadingLeaderboard(false);
-         setLoadingTimePlayed(false); // Ensure this stops too
-         return;
-      }
+  }, [userInfo, fetchDashboardData]); // Depend on userInfo and the fetch function itself
 
-    console.log(`[Effect 3] User ID (${currentUserId}) and Token found. Proceeding with fetch.`);
-
-    // Clear errors related to missing data ONLY if we are about to fetch
-    setErrorRecent(prev => (prev === "User ID is missing." || prev === "User data not found." || prev === "Invalid user data in storage." || prev === "Corrupt user data found." || prev === "Auth token is missing.") ? null : prev);
-    setErrorLeaderboard(prev => (prev === "User data not found." || prev === "Invalid user data in storage." || prev === "Corrupt user data found.") ? null : prev);
-    setErrorTimePlayed(prev => (prev === "User ID is missing." || prev === "User data not found." || prev === "Invalid user data in storage." || prev === "Corrupt user data found." || prev === "Auth token is missing.") ? null : prev);
-    
-    // Set loading states
-    setLoadingRecent(true); 
-    setLoadingLeaderboard(true);
-    setLoadingTimePlayed(true); // Start loading time played
-
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+  // --- NEW Effect 4: Re-fetch data on Window Focus ---
+  useEffect(() => {
+    const handleFocus = () => {
+        console.log("[Focus Handler] Window focused. Re-fetching data...");
+        // Reset the flag ONLY if user info is present
+        // We don't reset it if the user logs out and logs back in (Effect 1 handles that)
+        if(userInfo) {
+            hasFetchedData.current = false; // Allow next fetch cycle
+            fetchDashboardData(); // Trigger data fetch
+        }
     };
 
-    let recentGamesFetched = false;
-    let leaderboardFetched = false;
-    let timePlayedFetched = false; // Track time played fetch
+    console.log("[Effect 4] Adding window focus listener.");
+    window.addEventListener('focus', handleFocus);
 
-    // --- Fetch Recent Games ---    
-    const fetchRecentGames = async () => {
-      // setErrorRecent(null); // Error cleared above
-      try {
-        console.log(`[Effect 3] Fetching recent games for user ${currentUserId}...`);
-        const response = await fetch(`http://localhost:3000/estadistica/ultimas-partidas/${currentUserId}`, {
-            method: 'GET',
-            headers: headers
-        }); 
-        
-        if (!response.ok) {
-            const errorText = await response.text(); 
-            console.error(`[Effect 3] Failed fetch recent games. Status: ${response.status}, Response: ${errorText}`);
-            if (response.status === 401 || response.status === 403) {
-                 throw new Error(`Authentication failed`);
-            }
-            throw new Error(`Server error (${response.status})`);
-        }
-        const data = await response.json();
-        console.log("[Effect 3] Recent games data received:", data);
-        setRecentGamesData(data);
-      } catch (error) {
-        console.error("[Effect 3] Catch block: Error fetching recent games:", error);
-        setErrorRecent(error.message || 'Could not load recent games.');
-      } finally {
-        recentGamesFetched = true;
-        // Stop global loading only when ALL fetches are done
-        if (leaderboardFetched && timePlayedFetched) {
-            setLoadingRecent(false);
-            setLoadingLeaderboard(false);
-            setLoadingTimePlayed(false);
-        }
-      }
+    // Cleanup listener on component unmount
+    return () => {
+        console.log("[Effect 4] Removing window focus listener.");
+        window.removeEventListener('focus', handleFocus);
     };
-
-    // --- Fetch Leaderboard ---    
-    const fetchLeaderboard = async () => {
-      // setErrorLeaderboard(null); // Error cleared above
-      try {
-        console.log("[Effect 3] Fetching leaderboard...");
-        const response = await fetch('http://localhost:3000/estadistica/leaderboard', {
-            method: 'GET',
-            headers: headers
-        }); 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`[Effect 3] Failed fetch leaderboard. Status: ${response.status}, Response: ${errorText}`);
-            if (response.status === 401 || response.status === 403) {
-                 throw new Error(`Authentication failed`);
-            }
-            throw new Error(`Server error (${response.status})`);
-        }
-        const data = await response.json();
-        console.log("[Effect 3] Leaderboard data received:", data);
-        setLeaderboardData(data);
-      } catch (error) {
-        console.error("[Effect 3] Catch block: Error fetching leaderboard:", error);
-        setErrorLeaderboard(error.message || 'Could not load leaderboard.');
-      } finally {
-        leaderboardFetched = true;
-        // Stop global loading only when ALL fetches are done
-         if (recentGamesFetched && timePlayedFetched) {
-             setLoadingRecent(false);
-             setLoadingLeaderboard(false);
-             setLoadingTimePlayed(false);
-        }
-      }
-    };
-
-    // --- NEW: Fetch Time Played --- 
-    const fetchTimePlayed = async () => {
-      try {
-        console.log(`[Effect 3] Fetching time played for user ${currentUserId}...`);
-        const response = await fetch(`http://localhost:3000/estadistica/tiempo-jugado/${currentUserId}`, {
-            method: 'GET',
-            headers: headers
-        }); 
-        
-        if (!response.ok) {
-            const errorText = await response.text(); 
-            console.error(`[Effect 3] Failed fetch time played. Status: ${response.status}, Response: ${errorText}`);
-            if (response.status === 401 || response.status === 403) {
-                 throw new Error(`Authentication failed`);
-            }
-            throw new Error(`Server error (${response.status})`);
-        }
-        const data = await response.json();
-        console.log("[Effect 3] Time played data received:", data);
-
-        // --- Transform data for the chart --- 
-        const transformedData = data.map(item => ({
-            day: new Date(item.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short' }), // Get short weekday name (lun., mar., etc.)
-            hours: parseFloat((item.totalSeconds / 3600).toFixed(1)) // Convert seconds to hours (1 decimal place)
-        }));
-        console.log("[Effect 3] Transformed time played data:", transformedData);
-        setTimePlayedChartData(transformedData);
-        
-      } catch (error) {
-        console.error("[Effect 3] Catch block: Error fetching time played:", error);
-        setErrorTimePlayed(error.message || 'Could not load time played data.');
-      } finally {
-        timePlayedFetched = true;
-        // Stop global loading only when ALL fetches are done
-        if (recentGamesFetched && leaderboardFetched) {
-            setLoadingRecent(false);
-            setLoadingLeaderboard(false);
-            setLoadingTimePlayed(false);
-        }
-      }
-    };
-
-    // Call all fetch functions
-    fetchRecentGames();
-    fetchLeaderboard();
-    fetchTimePlayed(); // Call the new fetch function
-
-  }, [userInfo]);
+    // Pass fetchDashboardData and userInfo in dependency array 
+    // to ensure handleFocus uses the latest versions
+  }, [fetchDashboardData, userInfo]);
+  // --- End NEW Effect 4 ---
 
   // Sample data for the time played chart (keep for now, replace if needed)
   const timePlayedData = [
@@ -653,8 +619,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Bienvenido,</p>
-                {/* Display gamertag from userInfo state, fallback if needed */}
-                <p className="font-bold text-lg mt-0">{userInfo?.gamertag || 'Usuario'}</p>
+                <p className="font-bold text-lg mt-0">{userInfo ? userInfo.gamertag : 'Usuario'}</p>
               </div>
             </div>
 
@@ -848,6 +813,53 @@ const Dashboard = () => {
                     )
                   }
                 </div>
+
+                {/* --- Level & Progress Card - VISUAL UPGRADE --- */}
+                <div className={`md:col-span-2 p-6 rounded-2xl ${ 
+                  darkMode 
+                    ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 shadow-lg' 
+                    : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30 shadow-lg'
+                }`}>
+                  <h2 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>Nivel y Progreso</h2>
+                  {
+                    (userInfo && userInfo.nivel !== undefined && userInfo.progreso !== undefined) ? (
+                      // Use Flexbox for layout: Badge on left, progress bar + text on right
+                      <div className="flex items-center space-x-4">
+                        {/* Level Badge */}
+                        <div className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center ${darkMode ? 'bg-primary-yellow/20 border border-primary-yellow/50' : 'bg-blue-100 border border-blue-300'}`}>
+                          <span className={`font-bold text-2xl ${darkMode ? 'text-primary-yellow' : 'text-blue-700'}`}>{userInfo.nivel}</span>
+                        </div>
+
+                        {/* Progress Bar and Text Container */}
+                        <div className="flex-grow space-y-1">
+                           <span className={`block text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Progreso al Nivel {userInfo.nivel + 1}</span>
+                           {/* Progress Bar Container (for overlaying text) */}
+                           <div className="relative w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700 overflow-hidden">
+                             {/* Progress Bar Fill (with gradient) */}
+                             <div 
+                               className="absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-yellow-400 to-primary-yellow dark:from-yellow-500 dark:to-yellow-400 shadow-inner"
+                               style={{ width: `${userInfo.progreso}%` }}
+                               role="progressbar"
+                               aria-valuenow={userInfo.progreso}
+                               aria-valuemin="0"
+                               aria-valuemax="100"
+                             >
+                             </div>
+                             {/* Progress Text Overlay */}
+                             <div className="absolute inset-0 flex items-center justify-end pr-3">
+                                <span className={`text-[10px] font-bold ${userInfo.progreso > 50 ? 'text-gray-800' : (darkMode? 'text-gray-200' : 'text-gray-700') } mix-blend-difference`}>
+                                   {userInfo.progreso} / 100 XP
+                                </span>
+                             </div>
+                           </div>
+                        </div>
+                      </div>
+                    ) : (
+                       <p className="text-sm text-gray-500">Cargando información de nivel...</p>
+                    )
+                  }
+                </div>
+                {/* --- End Level & Progress Card --- */}
 
               </div>
             </div>

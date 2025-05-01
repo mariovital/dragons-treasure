@@ -56,11 +56,65 @@ const getStat = async (req, res) => {
     }
 };
 
+// --- Función para actualizar nivel y progreso ---
+// Separamos la lógica para reutilizarla o testearla más fácil
+async function updateLevelProgress(idUsuario, pointsToAdd) {
+    const connection = await pool.getConnection(); // Usar transacción para asegurar consistencia
+    try {
+        await connection.beginTransaction();
+
+        // 1. Obtener nivel y progreso actual del usuario
+        const [users] = await connection.query(
+            'SELECT nivel, progreso FROM usuario WHERE id = ? FOR UPDATE;', // FOR UPDATE bloquea la fila
+            [idUsuario]
+        );
+
+        if (users.length === 0) {
+            console.error(`[Level] Usuario con ID ${idUsuario} no encontrado para actualizar progreso.`);
+            await connection.rollback(); // Deshacer transacción
+            return; // Salir si el usuario no existe
+        }
+
+        let currentLevel = users[0].nivel;
+        let currentProgress = users[0].progreso;
+
+        // 2. Calcular nuevo progreso y nivel
+        let newProgress = currentProgress + pointsToAdd;
+        let newLevel = currentLevel;
+        const pointsNeededForLevelUp = 100;
+
+        // 3. Manejar subida de nivel (puede subir varios niveles si gana muchos puntos)
+        while (newProgress >= pointsNeededForLevelUp) {
+            newLevel += 1;
+            newProgress -= pointsNeededForLevelUp;
+            console.log(`[Level] ¡Usuario ${idUsuario} subió a nivel ${newLevel}! Progreso restante: ${newProgress}`);
+        }
+
+        // 4. Actualizar la tabla usuario
+        await connection.query(
+            'UPDATE usuario SET nivel = ?, progreso = ? WHERE id = ?',
+            [newLevel, newProgress, idUsuario]
+        );
+
+        await connection.commit(); // Confirmar transacción
+        console.log(`[Level] Progreso actualizado para usuario ${idUsuario}. Nivel: ${newLevel}, Progreso: ${newProgress}`);
+
+    } catch (error) {
+        console.error(`[Level] Error actualizando nivel/progreso para usuario ${idUsuario}:`, error);
+        await connection.rollback(); // Revertir en caso de error
+        // Considera lanzar el error para manejarlo más arriba si es necesario
+        // throw error;
+    } finally {
+        connection.release(); // Siempre liberar la conexión
+    }
+}
+// --- Fin función --- 
+
 // Record a victory (assuming idTipo = 1 for 'victorias')
 const recordVictory = async (req, res) => {
-    // Expect idUsuario in the request body now instead of gamertag
     const { idUsuario } = req.body;
-    const idTipoVictoria = 1; // *** ASSUMPTION: idTipo 1 corresponds to 'victorias' ***
+    const idTipoVictoria = 1; 
+    const pointsPerVictory = 10; // Puntos a añadir por victoria
 
     console.log("Record victory request for user ID:", idUsuario);
 
@@ -69,31 +123,32 @@ const recordVictory = async (req, res) => {
     }
 
     try {
-        // Get the current or new statistic entry for victories
+        // --- Registrar la estadística de victoria (como antes) ---
         const statEntry = await getOrCreateStatistic(idUsuario, idTipoVictoria);
-
-        // Increment the integer value (number of victories)
         const newValorInt = (statEntry.valor_INT || 0) + 1;
         const now = new Date();
-
-        // Update the statistic entry
         await pool.query(
             "UPDATE estadistica SET valor_INT = ?, fecha_hora = ? WHERE id = ?",
             [newValorInt, now, statEntry.id]
         );
-
-        // Optionally, fetch the updated stats to return
         const [updatedStats] = await pool.query("SELECT * FROM estadistica WHERE idUsuario = ? AND idTipo = ?", [idUsuario, idTipoVictoria]);
+        console.log(`[Stats] Estadística de victoria actualizada para usuario ${idUsuario}.`);
+        // --- Fin registro estadística ---
 
+        // --- Actualizar Nivel y Progreso --- 
+        await updateLevelProgress(idUsuario, pointsPerVictory);
+        // --- Fin actualización Nivel/Progreso ---
 
         res.json({
             code: 1,
-            message: "Victory recorded",
+            message: "Victory recorded and progress updated",
             idUsuario: idUsuario,
-            statistic: updatedStats[0] // Return the updated specific statistic
+            statistic: updatedStats[0] 
         });
     } catch (err) {
-        console.error('Error recording victory:', err);
+        // El error del nivel/progreso ya se loggea en updateLevelProgress
+        // Solo loggeamos errores del registro de estadísticas aquí
+        console.error(`[Stats] Error recording victory stats for user ${idUsuario}:`, err); 
         res.status(500).json({ code: 0, message: "Error recording victory" });
     }
 };
@@ -177,7 +232,8 @@ export const getUltimasPartidas = async (req, res, next) => {
     }
 };
 
-// --- Obtener Leaderboard (Top 5 Victorias más Rápidas) ---
+// --- Obtener Leaderboard (Top 5 Victorias más Rápidas) --- 
+// Ensure this function is defined with export const
 export const getLeaderboard = async (req, res, next) => {
     try {
         console.log("Fetching leaderboard data...");
@@ -210,6 +266,7 @@ export const getLeaderboard = async (req, res, next) => {
 };
 
 // --- Obtener Tiempo Jugado por Día (Últimos 7 días) ---
+// Ensure this function is also defined with export const
 export const getTiempoJugado = async (req, res, next) => {
     const { idUsuario } = req.params;
 
@@ -254,5 +311,9 @@ export const getTiempoJugado = async (req, res, next) => {
     }
 };
 
-// Export the updated functions
+// Export ONLY the functions NOT defined with 'export const' individually
 export { getStat, recordVictory, recordDefeat };
+// getUltimasPartidas should also likely be defined with 'export const' above
+// If getUltimasPartidas IS defined with 'export const', remove it from here too.
+// Assuming it is for now:
+// export { getStat, recordVictory, recordDefeat };

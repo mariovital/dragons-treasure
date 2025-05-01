@@ -157,12 +157,18 @@ export const loginUser = async (req, res, next) => {
         if (aulifyResponse.status === 200 && aulifyResponse.data?.token) {
             // Successful login via Aulify
             const aulifyData = aulifyResponse.data;
+            
+            // --- Log DETALLADO de la respuesta de Aulify --- 
+            console.log('[Auth Controller] Successful Aulify API Response Data:', JSON.stringify(aulifyData, null, 2));
+            // --- Fin Log Detallado ---
+
             console.log(`Aulify login successful for ${email}.`);
             
             // --- Find or Create User Locally ---
-            const localUserEmail = aulifyData.user.email;
-            const localUserName = aulifyData.user.name; // Assuming Aulify returns 'name'
-            const localUserLevel = aulifyData.user.level; // Assuming Aulify returns 'level'
+            const localUserEmail = aulifyData.email; 
+            const localUserName = aulifyData.name; 
+            const localUserLevel = aulifyData.level; // Assuming Aulify still returns level directly
+            
             // Extract first name for gamertag
             const localUserGamertag = localUserName ? localUserName.split(' ')[0] : 'User'; 
 
@@ -203,8 +209,14 @@ export const loginUser = async (req, res, next) => {
                 name: localUser.name,
                 gamertag: localUser.gamertag,
                 monedas: localUser.monedas,
-                ultimo_sticker_desbloqueado: localUser.ultimo_sticker_desbloqueado
+                ultimo_sticker_desbloqueado: localUser.ultimo_sticker_desbloqueado,
+                nivel: localUser.nivel,
+                progreso: localUser.progreso
             };
+
+            // --- Log para verificar datos enviados --- 
+            console.log('[Auth Controller] User data being sent to frontend:', userToSend);
+            // --- Fin Log ---
 
             // Respond with success, Aulify token, and local user data
             res.status(200).json({
@@ -221,8 +233,9 @@ export const loginUser = async (req, res, next) => {
              
             // --- Specific error message for bad credentials ---
             // Check common status codes or message contents indicating bad credentials
-            if (aulifyResponse.status === 401 || aulifyResponse.status === 400 || (errorMessage && errorMessage.toLowerCase().includes('invalid credentials'))) {
-                 return res.status(401).json({ success: false, message: 'Correo o contraseña incorrectos' });
+            // Updated to include 404 based on Postman test for this specific API
+            if (aulifyResponse.status === 401 || aulifyResponse.status === 400 || aulifyResponse.status === 404 || (errorMessage && errorMessage.toLowerCase().includes('invalid email or password'))) {
+                 return res.status(401).json({ success: false, message: 'Correo o contraseña incorrectos' }); // Return 401 from OUR API
             } else {
                  // Generic Aulify failure message for other errors
                  return res.status(aulifyResponse.status || 400).json({ success: false, message: errorMessage });
