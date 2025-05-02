@@ -4,31 +4,34 @@ import {
     getUltimasPartidas, 
     getLeaderboard, 
     getTiempoJugado,
-    getStat, 
-    recordVictory, 
-    recordDefeat 
+    recordGameController,
+    getUserSummary
 } from '../controllers/estadistica.controller.js';
+import { verifyTokenPresence } from '../middleware/verifyTokenPresence.js'; // Middleware needed for protected routes
 
 const router = Router();
 
 // --- Define Specific Routes FIRST ---
 
-// GET leaderboard - Most specific GET route
-router.get('/leaderboard', getLeaderboard); 
+// GET leaderboard - Now requires authentication 
+// (assuming only logged-in users can see it)
+router.get('/leaderboard', verifyTokenPresence, getLeaderboard); 
 
-// GET recent games - Specific path segment before parameter
-router.get('/ultimas-partidas/:idUsuario', getUltimasPartidas); 
+// GET recent games - Uses token, remove param
+router.get('/ultimas-partidas', verifyTokenPresence, getUltimasPartidas); 
 
-// GET time played per day for a user (NEW ROUTE)
-router.get('/tiempo-jugado/:idUsuario', getTiempoJugado); 
+// GET time played per day - Uses token, remove param
+router.get('/tiempo-jugado', verifyTokenPresence, getTiempoJugado); 
 
-// POST victory/defeat
-router.post('/victory', recordVictory);
-router.post('/defeat', recordDefeat);
+// POST game result - NEW consolidated route
+router.post('/record-game', verifyTokenPresence, recordGameController);
+
+// --- NEW: Endpoint for User Statistics Summary ---
+router.get('/user-summary', verifyTokenPresence, getUserSummary);
 
 // --- Define Generic Routes LAST ---
 
-// GET ALL STATS for a specific user - Keep this last among GET routes
-router.get('/stats/:idUsuario', getStat); 
+// GET ALL STATS for a specific user - Route REMOVED, merged into /user-summary
+// router.get('/stats', verifyTokenPresence, getStat); 
 
 export { router };

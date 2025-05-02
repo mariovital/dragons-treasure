@@ -7,12 +7,12 @@ const AULIFY_API_KEY = process.env.AULIFY_API_KEY;
 
 // Controlador para obtener las monedas del usuario desde Aulify
 const getCoinsController = async (req, res) => {
-    console.log("[Aulify Controller - getCoins] Value of req.token at start:", req.token);
-    const aulifyToken = req.token; // Token extraído por el middleware
+    // Read Aulify token from the custom header sent by frontend
+    const aulifyToken = req.headers['x-aulify-token']; 
 
     if (!aulifyToken) {
-        // Esto no debería ocurrir si el middleware funciona, pero es una doble verificación
-        return res.status(401).json({ message: 'Token de Aulify no encontrado en la solicitud.' });
+        // Adjusted error message
+        return res.status(400).json({ message: 'Token de Aulify (X-Aulify-Token header) no encontrado en la solicitud.' });
     }
      if (!AULIFY_API_KEY) {
         console.error("[Aulify Controller] AULIFY_API_KEY no está configurada en .env");
@@ -45,11 +45,12 @@ const getCoinsController = async (req, res) => {
 
 // Controlador para obtener el último sticker del usuario desde Aulify
 const getLastStickerController = async (req, res) => {
-    console.log("[Aulify Controller - getLastSticker] Value of req.token at start:", req.token);
-    const aulifyToken = req.token; // Token extraído por el middleware
+    // Read Aulify token from the custom header sent by frontend
+    const aulifyToken = req.headers['x-aulify-token']; 
 
      if (!aulifyToken) {
-        return res.status(401).json({ message: 'Token de Aulify no encontrado en la solicitud.' });
+        // Adjusted error message
+        return res.status(400).json({ message: 'Token de Aulify (X-Aulify-Token header) no encontrado en la solicitud.' });
     }
      if (!AULIFY_API_KEY) {
         console.error("[Aulify Controller] AULIFY_API_KEY no está configurada en .env");

@@ -1,5 +1,5 @@
 import axios from 'axios';
-// import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 // import { findOrCreateUser } from './usuario.controller.js';
 import { pool } from '../helpers/mysql-config.js';
 
@@ -7,7 +7,8 @@ const AULIFY_LOGIN_URL = 'https://www.aulify.mx/aulifyLogin';
 const AULIFY_STICKER_URL = 'https://www.aulify.mx/getLastSticker';
 const AULIFY_COINS_URL = 'https://www.aulify.mx/getCoins'; // <--  URL para monedas
 const AULIFY_API_KEY = process.env.AULIFY_API_KEY;
-const JWT_SECRET = process.env.KEYPHRASE;
+// const JWT_SECRET = process.env.KEYPHRASE; // REMOVE - No longer used
+const BACKEND_JWT_SECRET = process.env.BACKEND_JWT_SECRET; // ADD - Our secret key
 
 //------- Función Auxiliar: Actualizar Stickers del Usuario -------
 const updateUserStickerCount = async (localUserId, aulifyToken) => {
@@ -202,6 +203,19 @@ export const loginUser = async (req, res, next) => {
                 localUser = newUser[0];
             }
             
+            // --- Generate OUR backend JWT ---
+            if (!BACKEND_JWT_SECRET) {
+                console.error('[Auth Controller] Error: BACKEND_JWT_SECRET no está definida en .env');
+                // Don't send a token if we can't sign it securely
+                return res.status(500).json({ success: false, message: 'Error de configuración interna del servidor [JWT Secret Missing]' });
+            }
+            
+            const payload = { userId: localUser.id }; // Payload contains our local user ID
+            const options = { expiresIn: '8h' }; // Set token expiration (e.g., 8 hours)
+            const ourJwtToken = jwt.sign(payload, BACKEND_JWT_SECRET, options);
+            console.log(`[Auth Controller] Generated our backend JWT for user ID: ${localUser.id}`);
+            // --- End JWT Generation ---
+            
             // Prepare local user data to send back (exclude sensitive info like password hash if it existed)
             const userToSend = {
                 id: localUser.id,
@@ -218,11 +232,12 @@ export const loginUser = async (req, res, next) => {
             console.log('[Auth Controller] User data being sent to frontend:', userToSend);
             // --- Fin Log ---
 
-            // Respond with success, Aulify token, and local user data
+            // Respond with success, OUR JWT token, Aulify token, and local user data
             res.status(200).json({
                 success: true,
                 message: 'Login successful',
-                token: aulifyData.token, // The token from Aulify
+                token: ourJwtToken, // Send OUR JWT token
+                aulifyToken: aulifyData.token, // Also send Aulify's token
                 user: userToSend // Local user data
             });
 

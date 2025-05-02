@@ -45,7 +45,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 // Import CrosstenLight font
 import '../fonts/CrosstenLight.css';
 
-// --- Helper function to format time (assuming value is in seconds) ---
+// --- Helper function to format time (HH:MM:SS for game results) ---
 // NOTE: Ensure the backend returns duracion_partida in total seconds
 // or adjust this function accordingly if it returns 'HH:MM:SS' format.
 const formatTime = (totalSeconds) => {
@@ -58,7 +58,35 @@ const formatTime = (totalSeconds) => {
   // Format as H:MM:SS
   return `${hours.toString()}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 };
-// --- End Helper ---
+
+// --- NEW Helper function to format duration (X h Y min) for charts/tooltips ---
+const formatDurationForChart = (totalSeconds) => {
+  if (totalSeconds === null || totalSeconds === undefined || isNaN(totalSeconds) || totalSeconds < 0) {
+    return '--'; 
+  }
+  if (totalSeconds < 60) {
+    return `0 min`; 
+  }
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  let result = '';
+  if (hours > 0) {
+    result += `${hours} h`; // Use 'h' for brevity in chart
+  }
+  if (minutes > 0) {
+    if (result.length > 0) result += ' ';
+    result += `${minutes} min`; // Use 'min' for brevity
+  }
+  
+  if (result === '') {
+      return '0 min';
+  }
+
+  return result;
+};
+// --- End Helpers ---
 
 const Dashboard = () => {
   const { darkMode, toggleDarkMode } = useTheme();
@@ -107,19 +135,25 @@ const Dashboard = () => {
   // --- Refactored Data Fetching Logic --- 
   // useCallback ensures this function reference is stable unless dependencies change
   const fetchDashboardData = useCallback(async () => {
-    const token = localStorage.getItem('aulifyToken');
+    const ourToken = localStorage.getItem('token'); // Read our JWT
+    const aulifyApiToken = localStorage.getItem('aulifyToken'); // Read Aulify's token
     const currentUserId = userInfo?.id;
 
     // Exit if essential data is missing
-    if (!currentUserId || !token) {
-      console.log("[fetchDashboardData] Skipping: Missing userId or token.");
-      // Ensure loading is off if we skip
-      setLoadingRecent(false);
-      setLoadingLeaderboard(false);
-      setLoadingTimePlayed(false);
-      setLoadingCoins(false);
-      setLoadingSticker(false);
-      return;
+    if (!currentUserId || !ourToken) { // Check for our token now
+        console.log("[fetchDashboardData] Skipping: Missing userId or our token.");
+        // Ensure loading is off if we skip
+        setLoadingRecent(false);
+        setLoadingLeaderboard(false);
+        setLoadingTimePlayed(false);
+        setLoadingCoins(false);
+        setLoadingSticker(false);
+        return;
+    }
+    
+    // Log presence of Aulify token for debugging
+    if (!aulifyApiToken) {
+        console.warn("[fetchDashboardData] Aulify token not found in localStorage. Calls to /aulify/* might fail.");
     }
 
     console.log(`[fetchDashboardData] Fetching all data for user ${currentUserId}...`);
@@ -134,18 +168,27 @@ const Dashboard = () => {
     setErrorCoins(null);
     setErrorSticker(null);
 
-    const headers = {
+    // Headers for OUR backend endpoints (Stats, Leaderboard, Time)
+    const headersOurApi = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${ourToken}` // Use our JWT
+    };
+    
+    // Headers for backend PROXY endpoints (Coins, Sticker)
+    // Include our JWT for auth AND Aulify token in custom header for proxy
+    const headersProxyApi = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${ourToken}`, // Our JWT to authenticate with our backend
+      'X-Aulify-Token': aulifyApiToken || '' // Aulify's token for the backend to use
     };
 
     try {
       const results = await Promise.allSettled([
-          fetch(`http://localhost:3000/estadistica/ultimas-partidas/${currentUserId}`, { method: 'GET', headers: headers }),
-          fetch('http://localhost:3000/estadistica/leaderboard', { method: 'GET', headers: headers }),
-          fetch(`http://localhost:3000/estadistica/tiempo-jugado/${currentUserId}`, { method: 'GET', headers: headers }),
-          fetch('http://localhost:3000/aulify/coins', { method: 'GET', headers: headers }),
-          fetch('http://localhost:3000/aulify/last-sticker', { method: 'GET', headers: headers })
+          fetch(`http://localhost:3000/estadistica/ultimas-partidas`, { method: 'GET', headers: headersOurApi }), 
+          fetch('http://localhost:3000/estadistica/leaderboard', { method: 'GET', headers: headersOurApi }),
+          fetch(`http://localhost:3000/estadistica/tiempo-jugado`, { method: 'GET', headers: headersOurApi }), 
+          fetch('http://localhost:3000/aulify/coins', { method: 'GET', headers: headersProxyApi }), // Use proxy headers
+          fetch('http://localhost:3000/aulify/last-sticker', { method: 'GET', headers: headersProxyApi }) // Use proxy headers
       ]);
       console.log("[fetchDashboardData] All fetches completed.");
 
@@ -174,10 +217,34 @@ const Dashboard = () => {
       const timePlayedResult = results[2];
        if (timePlayedResult.status === 'fulfilled' && timePlayedResult.value.ok) {
           const data = await timePlayedResult.value.json();
-          const transformedData = data.map(item => ({
-              day: new Date(item.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short' }),
-              hours: parseFloat((item.totalSeconds / 3600).toFixed(1))
-          }));
+          // Keep totalSeconds, parse it to number, and handle date safely
+          const transformedData = data.map(item => {
+              let dayLabel = 'Err'; // Default label in case of error
+              console.log("[fetchDashboardData] Raw date from backend:", item.date); // Log the raw date value
+              // Ensure item.date exists before trying to parse
+              if (item.date) { 
+                  try {
+                      // Try parsing the date directly
+                      const dateObj = new Date(item.date);
+                      if (!isNaN(dateObj.getTime())) { // Check if date is valid
+                          dayLabel = dateObj.toLocaleDateString('es-ES', { weekday: 'short' });
+                      } else {
+                          console.warn('[fetchDashboardData] Invalid date parsed from:', item.date);
+                      }
+                  } catch (e) {
+                      console.error('[fetchDashboardData] Error parsing date:', item.date, e);
+                  }
+              } else {
+                   console.warn('[fetchDashboardData] Invalid or missing date value from backend:', item.date);
+              }
+              return {
+                  day: dayLabel,
+                  // Parse totalSeconds to integer, default to 0 if invalid
+                  totalSeconds: parseInt(item.totalSeconds, 10) || 0 
+              };
+          });
+          // Log the data structure being passed to the chart
+          console.log("[fetchDashboardData] Time Played Chart Data:", transformedData); 
           setTimePlayedChartData(transformedData);
       } else {
            const status = timePlayedResult.status === 'fulfilled' ? timePlayedResult.value.status : 'rejected';
@@ -892,8 +959,9 @@ const Dashboard = () => {
                             <span className="font-bold w-6 text-center">{getMedalIcon(entry.rank)}</span> {/* Use getMedalIcon */}
                             <span className={`font-medium ${darkMode ? 'text-primary-yellow' : 'text-blue-700'}`}>{entry.name}</span> {/* Display gamertag */}
                   </div>
+                          {/* Display total victorias instead of time */}
                           <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                             {formatTime(entry.time)} {/* Use formatTime helper */}
+                             {entry.victorias} Victorias 
                           </span>
                         </li>
                       ))}
@@ -920,14 +988,22 @@ const Dashboard = () => {
                         <LineChart data={timePlayedChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#444' : '#ccc'} />
                           <XAxis dataKey="day" stroke={darkMode ? '#999' : '#666'} tick={{ fontSize: 12 }} />
-                          <YAxis stroke={darkMode ? '#999' : '#666'} tick={{ fontSize: 12 }} label={{ value: 'Horas', angle: -90, position: 'insideLeft', fill: darkMode ? '#999' : '#666', fontSize: 12, dx: -5 }} />
+                          {/* Use tickFormatter for Y-axis labels */}
+                          <YAxis 
+                            stroke={darkMode ? '#999' : '#666'} 
+                            tick={{ fontSize: 12 }} 
+                            label={{ value: 'Tiempo', angle: -90, position: 'insideLeft', fill: darkMode ? '#999' : '#666', fontSize: 12, dx: -5 }} 
+                            tickFormatter={formatDurationForChart} // Apply formatting to ticks
+                          />
                           <Tooltip 
                             contentStyle={{ backgroundColor: darkMode ? '#333' : '#fff', border: 'none', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }} 
                             itemStyle={{ color: darkMode ? '#ddd' : '#333' }} 
                             labelStyle={{ fontWeight: 'bold', color: darkMode ? '#fff' : '#000' }} 
-                            formatter={(value) => [`${value} horas`, 'Tiempo']} // Format tooltip content
+                            // Use the new formatter for tooltip content (value is totalSeconds)
+                            formatter={(value) => [formatDurationForChart(value), 'Tiempo']} 
                           />
-                          <Line type="monotone" dataKey="hours" stroke={darkMode ? '#F6BA27' : '#0053B1'} strokeWidth={2} activeDot={{ r: 6 }} dot={{ r: 4 }} />
+                          {/* Use totalSeconds as dataKey */}
+                          <Line type="monotone" dataKey="totalSeconds" stroke={darkMode ? '#F6BA27' : '#0053B1'} strokeWidth={2} activeDot={{ r: 6 }} dot={{ r: 4 }} />
                   </LineChart>
                 </ResponsiveContainer>
                     ) : (

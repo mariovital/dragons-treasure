@@ -2,15 +2,12 @@ create table estadistica
 (
     id               int auto_increment
         primary key,
-    idUsuario        int           null,
-    idTipo           int           null,
-    valor_INT        int           null,
-    valor_TIME       time          null,
-    fecha_hora       datetime      null,
-    victorias        int default 0 null,
-    derrotas         int default 0 null,
-    partidas_totales int default 0 null,
-    duracion_partida time          null,
+    idUsuario        int      null,
+    idTipo           int      null,
+    valor_INT        int      null,
+    valor_TIME       time     null,
+    fecha_hora       datetime null,
+    duracion_partida time     null,
     constraint estadistica_ibfk_1
         foreign key (idUsuario) references dragonstreasuredb.usuario (id),
     constraint estadistica_ibfk_2
@@ -67,5 +64,8 @@ create table usuario
     name                        varchar(100)  null,
     gamertag                    varchar(50)   null,
     nivel                       int default 1 not null,
-    progreso                    int default 0 not null
+    progreso                    int default 0 not null,
+    total_victorias             int default 0 not null,
+    total_derrotas              int default 0 not null,
+    total_partidas              int default 0 not null
 );

@@ -111,13 +111,13 @@ const Login = () => {
             // Login exitoso
             console.log('Local backend login successful:', data);
 
-            // *** Almacenar Token de Aulify ***
-            // Decide si usar localStorage (persiste) o sessionStorage (se borra al cerrar)
-            localStorage.setItem('aulifyToken', data.token); 
-            // También podrías guardar otros datos del usuario si son útiles globalmente
+            // *** Almacenar Token JWT (nuestro) y Token de Aulify ***
+            localStorage.setItem('token', data.token); // Guardar nuestro JWT
+            if (data.aulifyToken) { // Guardar token de Aulify si existe
+                localStorage.setItem('aulifyToken', data.aulifyToken); 
+                console.log('Aulify Token stored.');
+            }
             localStorage.setItem('userData', JSON.stringify(data.user));
-
-            console.log('Aulify Token stored.');
 
             // Redirigir al dashboard
         navigate('/dashboard');

@@ -1,78 +1,175 @@
 import { pool } from '../helpers/mysql-config.js';
 
-// Removed getUserId(gamertag) as gamertag is no longer used for user identification here.
-// We will assume idUsuario is provided directly.
-
-// Helper function to get or create a specific statistic entry for a user
-async function getOrCreateStatistic(idUsuario, idTipo) {
-    const [rows] = await pool.query(
-        "SELECT * FROM estadistica WHERE idUsuario = ? AND idTipo = ?",
-        [idUsuario, idTipo]
-    );
-    if (rows.length > 0) {
-        return rows[0]; // Return existing statistic
-    } else {
-        // Create a new entry if it doesn't exist, initialize value and time appropriately
-        const now = new Date();
-        const [result] = await pool.query(
-            "INSERT INTO estadistica (idUsuario, idTipo, valor_INT, valor_TIME, fecha_hora) VALUES (?, ?, 0, '00:00:00', ?)",
-            [idUsuario, idTipo, now]
-        );
-        // Fetch the newly created row
-        const [newRow] = await pool.query("SELECT * FROM estadistica WHERE id = ?", [result.insertId]);
-        return newRow[0];
+// --- Helper function to format SECONDS into H:M:S or M:S string ---
+function formatSecondsToHMS(totalSeconds) {
+    if (totalSeconds === null || totalSeconds === undefined || isNaN(totalSeconds)) {
+        return '--:--';
     }
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+  
+    let result = '';
+    if (hours > 0) {
+      result += `${hours}:`;
+    }
+    result += `${minutes.toString().padStart(hours > 0 ? 2 : 1, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return result; // e.g., "1:25:03" or "15:32"
 }
 
-// Get all statistics for a specific user
-const getStat = async (req, res) => {
-    // Assuming idUsuario is passed as a URL parameter
-    const { idUsuario } = req.params;
-    console.log("User ID received for stats:", idUsuario);
+// --- Renamed and Enhanced: Get User Statistics Summary --- 
+const getUserSummary = async (req, res, next) => {
+    const userId = req.userId; // From verifyTokenPresence middleware
 
-    if (!idUsuario) {
-         return res.status(400).json({ message: 'User ID (idUsuario) is required' });
+    if (!userId) {
+        console.warn('[UserSummary] userId missing from request after middleware.');
+        return res.status(401).json({ message: 'Usuario no autenticado correctamente.' });
     }
 
+    console.log(`[UserSummary] Fetching statistics summary for user ID: ${userId}`);
+    let connection;
+
     try {
-        // Fetch all statistics for the user, joining with tipoEstadistica for context
-        const [results] = await pool.query(
-           `SELECT e.*, t.nombre as tipoNombre
-            FROM estadistica e
-            JOIN tipoEstadistica t ON e.idTipo = t.id
-            WHERE e.idUsuario = ?`,
-           [idUsuario]
+        connection = await pool.getConnection();
+
+        // --- Query 1: User Profile and Totals ---
+        const [userResults] = await connection.query(
+            'SELECT gamertag, nivel, progreso, total_victorias, total_derrotas, total_partidas FROM usuario WHERE id = ?',
+            [userId]
         );
 
-        if (results.length === 0) {
-            // It's okay if a user has no stats yet, return an empty array or appropriate message
-            return res.status(200).json([]); // Return empty array if no stats found
+        if (userResults.length === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado.' });
         }
+        const userData = userResults[0];
 
-        res.json(results); // Return all found statistics
-    } catch (err) {
-        console.error('Error fetching statistics:', err);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        // --- Query 2: Time Aggregates ---
+        const [timeResults] = await connection.query(
+            `SELECT 
+                SUM(TIME_TO_SEC(duracion_partida)) AS total_segundos_jugados,
+                AVG(TIME_TO_SEC(duracion_partida)) AS media_segundos_partida
+             FROM estadistica 
+             WHERE idUsuario = ? AND idTipo IN (1, 2)`, // Filter by game records
+            [userId]
+        );
+        const timeData = timeResults[0]; // SUM/AVG always return one row
+
+        // --- Query 3: History (Last 15 games) ---
+        const [historyResults] = await connection.query(
+            `SELECT 
+                fecha_hora, 
+                TIME_TO_SEC(duracion_partida) as duration_seconds, 
+                idTipo 
+             FROM estadistica 
+             WHERE idUsuario = ? AND idTipo IN (1, 2)
+             ORDER BY fecha_hora DESC 
+             LIMIT 15`,
+            [userId]
+        );
+        // Format history data
+        const gameHistory = historyResults.map(game => ({
+            date: game.fecha_hora.toISOString().split('T')[0], // Format as YYYY-MM-DD
+            time: formatSecondsToHMS(game.duration_seconds),
+            outcome: game.idTipo === 1 ? 'victory' : 'defeat'
+        }));
+
+        // --- Query 4: Wins/Losses per Day (Last 7 days) ---
+        const [dailyResults] = await connection.query(
+            `SELECT 
+                DATE(fecha_hora) as dia,
+                SUM(CASE WHEN idTipo = 1 THEN 1 ELSE 0 END) as victorias_dia,
+                SUM(CASE WHEN idTipo = 2 THEN 1 ELSE 0 END) as derrotas_dia
+            FROM 
+                estadistica
+            WHERE 
+                idUsuario = ? AND idTipo IN (1, 2) AND fecha_hora >= CURDATE() - INTERVAL 6 DAY
+            GROUP BY 
+                dia
+            ORDER BY
+                dia ASC;`,
+            [userId]
+        );
+         // Format daily data for chart
+        const dailyChartData = dailyResults.map(day => ({
+            day: new Date(day.dia + 'T00:00:00Z').toLocaleDateString('es-ES', { weekday: 'short' }),
+            victorias: day.victorias_dia,
+            derrotas: day.derrotas_dia
+        }));
+
+        // --- Calculate Win Rate ---
+        const winRate = userData.total_partidas > 0 
+            ? ((userData.total_victorias / userData.total_partidas) * 100).toFixed(1) 
+            : 0;
+
+        // --- Combine all data ---
+        const summary = {
+            profile: {
+                gamertag: userData.gamertag,
+                nivel: userData.nivel,
+                progreso: userData.progreso
+            },
+            totals: {
+                victorias: userData.total_victorias,
+                derrotas: userData.total_derrotas,
+                partidas: userData.total_partidas,
+                winRate: parseFloat(winRate), // Send as number
+                totalTimePlayedSeconds: parseInt(timeData.total_segundos_jugados, 10) || 0,
+                avgTimePerGameSeconds: parseFloat(timeData.media_segundos_partida) || 0
+            },
+            history: gameHistory,
+            dailyActivity: dailyChartData
+        };
+
+        console.log(`[UserSummary] Summary generated for user ID: ${userId}`);
+        res.json(summary);
+
+    } catch (error) {
+        console.error(`[UserSummary] Error fetching summary for user ID ${userId}:`, error);
+        next(error);
+    } finally {
+        if (connection) connection.release();
     }
 };
 
-// --- Función para actualizar nivel y progreso ---
-// Separamos la lógica para reutilizarla o testearla más fácil
-async function updateLevelProgress(idUsuario, pointsToAdd) {
-    const connection = await pool.getConnection(); // Usar transacción para asegurar consistencia
-    try {
-        await connection.beginTransaction();
+// --- NEW: Record Game Result (Victory or Defeat) ---
+const recordGameController = async (req, res, next) => {
+    const { outcome, durationSeconds } = req.body;
+    const userId = req.userId; // Get userId attached by the verifyTokenPresence middleware
 
-        // 1. Obtener nivel y progreso actual del usuario
+    // --- Input Validation ---
+    if (!userId) {
+        // This shouldn't happen if middleware ran correctly, but double-check
+        console.warn('[RecordGame] userId missing from request after middleware.');
+        return res.status(401).json({ message: 'Usuario no autenticado correctamente.' });
+    }
+    if (!outcome || (outcome !== 'victory' && outcome !== 'defeat')) {
+        return res.status(400).json({ message: 'El campo "outcome" es inválido (debe ser "victory" o "defeat").' });
+    }
+    if (durationSeconds === undefined || typeof durationSeconds !== 'number' || durationSeconds < 0) {
+        return res.status(400).json({ message: 'El campo "durationSeconds" es inválido (debe ser un número positivo).' });
+    }
+    // --- End Validation ---
+
+    const idTipo = (outcome === 'victory') ? 1 : 2;
+    const pointsToAdd = (outcome === 'victory') ? 10 : -5;
+    const victoriesToAdd = (outcome === 'victory') ? 1 : 0;
+    const defeatsToAdd = (outcome === 'defeat') ? 1 : 0;
+    const pointsNeededForLevelUp = 100;
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+        console.log(`[RecordGame] Iniciando transacción para usuario ${userId}, outcome: ${outcome}`);
+
+        // 1. Obtener estado actual del usuario (con bloqueo para la transacción)
         const [users] = await connection.query(
-            'SELECT nivel, progreso FROM usuario WHERE id = ? FOR UPDATE;', // FOR UPDATE bloquea la fila
-            [idUsuario]
+            'SELECT nivel, progreso, total_victorias, total_derrotas, total_partidas FROM usuario WHERE id = ? FOR UPDATE;',
+            [userId]
         );
 
         if (users.length === 0) {
-            console.error(`[Level] Usuario con ID ${idUsuario} no encontrado para actualizar progreso.`);
-            await connection.rollback(); // Deshacer transacción
-            return; // Salir si el usuario no existe
+            throw new Error(`Usuario con ID ${userId} no encontrado.`);
         }
 
         let currentLevel = users[0].nivel;
@@ -81,239 +178,181 @@ async function updateLevelProgress(idUsuario, pointsToAdd) {
         // 2. Calcular nuevo progreso y nivel
         let newProgress = currentProgress + pointsToAdd;
         let newLevel = currentLevel;
-        const pointsNeededForLevelUp = 100;
+        
+        // Asegurar que el progreso no sea negativo (ajustar si se permite)
+        if (newProgress < 0) {
+            newProgress = 0;
+        }
 
-        // 3. Manejar subida de nivel (puede subir varios niveles si gana muchos puntos)
+        // 3. Manejar subida de nivel
         while (newProgress >= pointsNeededForLevelUp) {
             newLevel += 1;
             newProgress -= pointsNeededForLevelUp;
-            console.log(`[Level] ¡Usuario ${idUsuario} subió a nivel ${newLevel}! Progreso restante: ${newProgress}`);
+            console.log(`[RecordGame] ¡Usuario ${userId} subió a nivel ${newLevel}!`);
         }
 
-        // 4. Actualizar la tabla usuario
-        await connection.query(
-            'UPDATE usuario SET nivel = ?, progreso = ? WHERE id = ?',
-            [newLevel, newProgress, idUsuario]
+        // 4. Insertar el registro de la partida en estadistica
+        const [insertResult] = await connection.query(
+            'INSERT INTO estadistica (idUsuario, idTipo, fecha_hora, duracion_partida) VALUES (?, ?, NOW(), SEC_TO_TIME(?));',
+            [userId, idTipo, durationSeconds]
         );
+        console.log(`[RecordGame] Partida insertada en estadistica con ID: ${insertResult.insertId}`);
 
-        await connection.commit(); // Confirmar transacción
-        console.log(`[Level] Progreso actualizado para usuario ${idUsuario}. Nivel: ${newLevel}, Progreso: ${newProgress}`);
+        // 5. Actualizar los datos del usuario (nivel, progreso, totales)
+        const [updateResult] = await connection.query(
+            'UPDATE usuario SET nivel = ?, progreso = ?, total_victorias = total_victorias + ?, total_derrotas = total_derrotas + ?, total_partidas = total_partidas + 1 WHERE id = ?',
+            [newLevel, newProgress, victoriesToAdd, defeatsToAdd, userId]
+        );
+        
+        if (updateResult.affectedRows === 0) {
+             throw new Error(`No se pudo actualizar el usuario con ID ${userId}.`);
+        }
+        console.log(`[RecordGame] Datos del usuario ${userId} actualizados.`);
+
+        // 6. Confirmar transacción
+        await connection.commit();
+        console.log(`[RecordGame] Transacción completada exitosamente para usuario ${userId}.`);
+
+        res.status(201).json({ 
+            success: true, 
+            message: 'Partida registrada y progreso actualizado.',
+            levelInfo: { // Opcional: devolver nuevo estado
+                nivel: newLevel,
+                progreso: newProgress
+            }
+        });
 
     } catch (error) {
-        console.error(`[Level] Error actualizando nivel/progreso para usuario ${idUsuario}:`, error);
-        await connection.rollback(); // Revertir en caso de error
-        // Considera lanzar el error para manejarlo más arriba si es necesario
-        // throw error;
+        console.error(`[RecordGame] Error en transacción para usuario ${userId}:`, error);
+        if (connection) {
+            await connection.rollback(); // Revertir cambios si hubo error
+            console.log(`[RecordGame] Rollback ejecutado para usuario ${userId}.`);
+        }
+        // Pasar el error al manejador centralizado (o enviar respuesta 500)
+        next(error); 
+        // Alternativa: res.status(500).json({ message: 'Error interno al registrar la partida.' });
     } finally {
-        connection.release(); // Siempre liberar la conexión
-    }
-}
-// --- Fin función --- 
-
-// Record a victory (assuming idTipo = 1 for 'victorias')
-const recordVictory = async (req, res) => {
-    const { idUsuario } = req.body;
-    const idTipoVictoria = 1; 
-    const pointsPerVictory = 10; // Puntos a añadir por victoria
-
-    console.log("Record victory request for user ID:", idUsuario);
-
-    if (!idUsuario) {
-        return res.status(400).json({ code: 0, message: "User ID (idUsuario) is required" });
-    }
-
-    try {
-        // --- Registrar la estadística de victoria (como antes) ---
-        const statEntry = await getOrCreateStatistic(idUsuario, idTipoVictoria);
-        const newValorInt = (statEntry.valor_INT || 0) + 1;
-        const now = new Date();
-        await pool.query(
-            "UPDATE estadistica SET valor_INT = ?, fecha_hora = ? WHERE id = ?",
-            [newValorInt, now, statEntry.id]
-        );
-        const [updatedStats] = await pool.query("SELECT * FROM estadistica WHERE idUsuario = ? AND idTipo = ?", [idUsuario, idTipoVictoria]);
-        console.log(`[Stats] Estadística de victoria actualizada para usuario ${idUsuario}.`);
-        // --- Fin registro estadística ---
-
-        // --- Actualizar Nivel y Progreso --- 
-        await updateLevelProgress(idUsuario, pointsPerVictory);
-        // --- Fin actualización Nivel/Progreso ---
-
-        res.json({
-            code: 1,
-            message: "Victory recorded and progress updated",
-            idUsuario: idUsuario,
-            statistic: updatedStats[0] 
-        });
-    } catch (err) {
-        // El error del nivel/progreso ya se loggea en updateLevelProgress
-        // Solo loggeamos errores del registro de estadísticas aquí
-        console.error(`[Stats] Error recording victory stats for user ${idUsuario}:`, err); 
-        res.status(500).json({ code: 0, message: "Error recording victory" });
+        if (connection) {
+            connection.release(); // Liberar la conexión siempre
+        }
     }
 };
-
-// Record a defeat (assuming idTipo = 2 for 'derrotas')
-const recordDefeat = async (req, res) => {
-    // Expect idUsuario in the request body now instead of gamertag
-    const { idUsuario } = req.body;
-    const idTipoDerrota = 2; // *** ASSUMPTION: idTipo 2 corresponds to 'derrotas' ***
-
-    console.log("Record defeat request for user ID:", idUsuario);
-
-     if (!idUsuario) {
-        return res.status(400).json({ code: 0, message: "User ID (idUsuario) is required" });
-    }
-
-    try {
-        // Get the current or new statistic entry for defeats
-        const statEntry = await getOrCreateStatistic(idUsuario, idTipoDerrota);
-
-        // Increment the integer value (number of defeats)
-        const newValorInt = (statEntry.valor_INT || 0) + 1;
-        const now = new Date();
-
-        // Update the statistic entry
-        await pool.query(
-            "UPDATE estadistica SET valor_INT = ?, fecha_hora = ? WHERE id = ?",
-            [newValorInt, now, statEntry.id]
-        );
-
-         // Optionally, fetch the updated stats to return
-        const [updatedStats] = await pool.query("SELECT * FROM estadistica WHERE idUsuario = ? AND idTipo = ?", [idUsuario, idTipoDerrota]);
-
-        res.json({
-            code: 1,
-            message: "Defeat recorded",
-            idUsuario: idUsuario,
-            statistic: updatedStats[0] // Return the updated specific statistic
-        });
-    } catch (err) {
-        console.error('Error recording defeat:', err);
-        res.status(500).json({ code: 0, message: "Error recording defeat" });
-    }
-};
+// --- Fin NEW ---
 
 // --- Obtener Últimas 5 Partidas del Usuario ---
 export const getUltimasPartidas = async (req, res, next) => {
-    const { idUsuario } = req.params;
+    // const { idUsuario } = req.params; // OLD: From params
+    const userId = req.userId; // NEW: Get from middleware
 
-    if (!idUsuario) {
-        return res.status(400).json({ success: false, message: 'User ID is required' });
+    // if (!idUsuario) { ... } -> OLD check
+    if (!userId) {
+        console.warn('[UltimasPartidas] userId missing from request after middleware.');
+        return res.status(401).json({ message: 'Usuario no autenticado correctamente.' });
     }
 
     try {
-        console.log(`Fetching last 5 games for user ID: ${idUsuario}`);
+        console.log(`Fetching last 5 games for user ID: ${userId}`);
+        // Query updated to use idTipo instead of victorias/derrotas column
         const query = `
             SELECT 
-                victorias, 
-                derrotas, 
+                idTipo, 
                 TIME_TO_SEC(duracion_partida) as time 
             FROM estadistica 
             WHERE idUsuario = ? 
             ORDER BY fecha_hora DESC 
             LIMIT 5;
         `;
-        const [results] = await pool.query(query, [idUsuario]);
+        const [results] = await pool.query(query, [userId]);
 
-        // Map results to determine outcome based on victorias/derrotas
+        // Map results to determine outcome based on idTipo
         const formattedResults = results.map(row => ({
-            // Determine outcome: If victorias > 0, it's a win, otherwise a loss
-            outcome: row.victorias > 0 ? 'victory' : 'defeat',
-            time: row.time // Already selected as time in seconds
+            outcome: row.idTipo === 1 ? 'victory' : 'defeat', // 1 = victory, 2 = defeat
+            time: row.time 
         }));
 
-        console.log(`Found ${formattedResults.length} recent games for user ID: ${idUsuario}`);
+        console.log(`Found ${formattedResults.length} recent games for user ID: ${userId}`);
         res.json(formattedResults);
 
     } catch (error) {
-        console.error(`Error fetching recent games for user ID ${idUsuario}:`, error);
+        console.error(`Error fetching recent games for user ID ${userId}:`, error);
         next(error); // Pass error to the central handler
     }
 };
 
-// --- Obtener Leaderboard (Top 5 Victorias más Rápidas) --- 
-// Ensure this function is defined with export const
+// --- Obtener Leaderboard (Top 5 Victorias) --- 
+// Changed logic to use total_victorias from usuario table
 export const getLeaderboard = async (req, res, next) => {
     try {
-        console.log("Fetching leaderboard data...");
+        console.log("Fetching leaderboard data (Top 5 Victorias)...");
         const query = `
             SELECT 
-                u.gamertag, 
-                TIME_TO_SEC(e.duracion_partida) as time
-            FROM estadistica e
-            JOIN usuario u ON e.idUsuario = u.id
-            WHERE e.victorias > 0 AND e.duracion_partida IS NOT NULL -- Only wins with a valid duration
-            ORDER BY e.duracion_partida ASC 
+                gamertag AS name, 
+                total_victorias AS victorias 
+            FROM usuario
+            ORDER BY total_victorias DESC, id ASC -- Desempate por ID o fecha de registro?
             LIMIT 5;
         `;
         const [results] = await pool.query(query);
-
-        // Map results to add rank and use gamertag as name
-        const formattedResults = results.map((row, index) => ({
+        
+        // Add rank to the results
+        const leaderboardData = results.map((user, index) => ({
             rank: index + 1,
-            name: row.gamertag, // Use gamertag as requested
-            time: row.time // Already selected as time in seconds
+            name: user.name,
+            victorias: user.victorias
         }));
 
-        console.log(`Leaderboard data fetched: ${formattedResults.length} players.`);
-        res.json(formattedResults);
+        console.log(`Leaderboard data fetched: ${leaderboardData.length} players.`);
+        res.json(leaderboardData);
 
     } catch (error) {
-        console.error("Error fetching leaderboard:", error);
+        console.error('Error fetching leaderboard:', error);
+        next(error);
+    }
+};
+
+// --- Obtener Tiempo Jugado (del Usuario Actual) ---
+export const getTiempoJugado = async (req, res, next) => {
+    // const { idUsuario } = req.params; // OLD: From params
+    const userId = req.userId; // NEW: Get from middleware
+
+    // if (!idUsuario) { ... } -> OLD check
+     if (!userId) {
+        console.warn('[TiempoJugado] userId missing from request after middleware.');
+        return res.status(401).json({ message: 'Usuario no autenticado correctamente.' });
+    }
+
+    try {
+        console.log(`Fetching time played per day for user ID: ${userId} (Last 7 days)`);
+        const query = `
+            SELECT 
+                DATE(fecha_hora) as date,
+                SUM(TIME_TO_SEC(duracion_partida)) as totalSeconds
+            FROM 
+                estadistica
+            WHERE 
+                idUsuario = ? AND 
+                fecha_hora >= CURDATE() - INTERVAL 6 DAY
+            GROUP BY 
+                DATE(fecha_hora)
+            ORDER BY
+                date ASC;
+        `; // Asegura que solo tome los últimos 7 días incluyendo hoy
+        const [results] = await pool.query(query, [userId]);
+        
+        console.log(`Found ${results.length} daily time records for user ID: ${userId}`);
+        res.json(results);
+
+    } catch (error) {
+        console.error(`Error fetching time played for user ID ${userId}:`, error);
         next(error); // Pass error to the central handler
     }
 };
 
-// --- Obtener Tiempo Jugado por Día (Últimos 7 días) ---
-// Ensure this function is also defined with export const
-export const getTiempoJugado = async (req, res, next) => {
-    const { idUsuario } = req.params;
-
-    if (!idUsuario) {
-        return res.status(400).json({ success: false, message: 'User ID is required' });
-    }
-
-    try {
-        console.log(`Fetching time played per day for user ID: ${idUsuario} (Last 7 days)`);
-        const query = `
-            SELECT 
-                DATE(fecha_hora) as game_date,  -- Extract only the date part
-                SUM(TIME_TO_SEC(duracion_partida)) as total_seconds -- Sum duration in seconds
-            FROM estadistica 
-            WHERE 
-                idUsuario = ? 
-                AND fecha_hora >= CURDATE() - INTERVAL 6 DAY -- Filter for last 7 days (including today)
-            GROUP BY 
-                game_date -- Group by the date
-            ORDER BY 
-                game_date ASC; -- Order by date ascending
-        `;
-        const [results] = await pool.query(query, [idUsuario]);
-
-        console.log(`Found ${results.length} daily time records for user ${idUsuario}.`);
-        
-        // Optional: Format date for consistency if needed, or convert seconds to hours here
-        // For now, just return date and total seconds
-        const formattedResults = results.map(row => ({
-            date: row.game_date.toISOString().split('T')[0], // Format date as YYYY-MM-DD string
-            totalSeconds: parseInt(row.total_seconds, 10) || 0 // Ensure it's a number
-        }));
-
-        res.status(200).json(formattedResults); // Send the aggregated data
-
-    } catch (error) {
-        console.error('Error fetching time played data:', error);
-        // Consider sending a more specific error message if possible
-        res.status(500).json({ success: false, message: 'Error fetching time played data' });
-        // Forward the error to a central error handler if you have one
-        // next(error); 
-    }
+// Export the controllers
+export { 
+    getUserSummary, // Use the new summary function
+    recordGameController,
+    getUltimasPartidas, 
+    getLeaderboard, 
+    getTiempoJugado 
 };
-
-// Export ONLY the functions NOT defined with 'export const' individually
-export { getStat, recordVictory, recordDefeat };
-// getUltimasPartidas should also likely be defined with 'export const' above
-// If getUltimasPartidas IS defined with 'export const', remove it from here too.
-// Assuming it is for now:
-// export { getStat, recordVictory, recordDefeat };
