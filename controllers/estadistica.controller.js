@@ -351,8 +351,8 @@ export const getTiempoJugado = async (req, res, next) => {
 // Export the controllers
 export { 
     getUserSummary, // Use the new summary function
-    recordGameController,
-    getUltimasPartidas, 
-    getLeaderboard, 
-    getTiempoJugado 
+    recordGameController
+    // getUltimasPartidas, // Exported individually
+    // getLeaderboard, // Exported individually
+    // getTiempoJugado // Exported individually
 };

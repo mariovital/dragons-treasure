@@ -40,7 +40,10 @@ import salirIconLight from '../assets/images/Salir_Light.png';
 import ParticlesBackground from '../components/ParticlesBackground';
 
 // Import chart components
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { 
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+    PieChart, Pie, Cell, BarChart, Bar, Legend
+} from 'recharts';
 
 // Import CrosstenLight font
 import '../fonts/CrosstenLight.css';
@@ -86,6 +89,27 @@ const formatDurationForChart = (totalSeconds) => {
 
   return result;
 };
+
+// --- NEW Helper function to format total duration (D h M) ---
+const formatTotalDuration = (totalSeconds) => {
+  if (totalSeconds === null || totalSeconds === undefined || isNaN(totalSeconds) || totalSeconds <= 0) {
+    return 'N/A'; 
+  }
+  
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const days = Math.floor(totalHours / 24);
+
+  const hours = totalHours % 24;
+  const minutes = totalMinutes % 60;
+  
+  let parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0 || parts.length === 0) parts.push(`${minutes}min`); // Show minutes if > 0 or if it's the only unit
+
+  return parts.join(' ');
+};
 // --- End Helpers ---
 
 const Dashboard = () => {
@@ -118,6 +142,12 @@ const Dashboard = () => {
   const [loadingSticker, setLoadingSticker] = useState(true);
   const [errorCoins, setErrorCoins] = useState(null);
   const [errorSticker, setErrorSticker] = useState(null);
+
+  // --- NEW State for User Statistics Summary ---
+  const [userStatsSummary, setUserStatsSummary] = useState(null);
+  const [loadingUserStats, setLoadingUserStats] = useState(false); // Start false, load on tab click
+  const [errorUserStats, setErrorUserStats] = useState(null);
+  const statsFetched = useRef(false); // Track if stats have been fetched for this session
 
   // Ref to track if initial data fetch has been performed for the current user
   const hasFetchedData = useRef(false);
@@ -294,6 +324,51 @@ const Dashboard = () => {
     }
   }, [userInfo]); // Depends on userInfo to get the correct ID
   // --- End Refactored Fetch Logic ---
+
+  // --- NEW: Fetch User Statistics Summary ---
+  const fetchUserStats = useCallback(async () => {
+      if (!userInfo || statsFetched.current) { // Only fetch if user exists and not fetched yet
+          console.log("[fetchUserStats] Skipping: No user info or stats already fetched.");
+          return;
+      }
+      
+      const ourToken = localStorage.getItem('token');
+      if (!ourToken) {
+          console.error("[fetchUserStats] Skipping: Missing token.");
+          setErrorUserStats("No autenticado.");
+          return;
+      }
+
+      console.log(`[fetchUserStats] Fetching stats summary for user ${userInfo.id}...`);
+      setLoadingUserStats(true);
+      setErrorUserStats(null);
+      
+      const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ourToken}`
+      };
+
+      try {
+          const response = await fetch('http://localhost:3000/estadistica/user-summary', { method: 'GET', headers: headers });
+          
+          if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+          }
+          
+          const summaryData = await response.json();
+          console.log("[fetchUserStats] Summary data received:", summaryData);
+          setUserStatsSummary(summaryData);
+          statsFetched.current = true; // Mark as fetched
+
+      } catch (error) {
+          console.error("[fetchUserStats] Error fetching stats summary:", error);
+          setErrorUserStats(error.message || "Error al cargar las estadísticas.");
+      } finally {
+          setLoadingUserStats(false);
+      }
+  }, [userInfo]); // Depend on userInfo
+  // --- End Fetch User Stats ---
 
   // --- Effect 1: Get User Info and Token on Mount ---
   useEffect(() => {
@@ -621,6 +696,17 @@ const Dashboard = () => {
     // to ensure handleFocus uses the latest versions
   }, [fetchDashboardData, userInfo]);
   // --- End NEW Effect 4 ---
+
+  // --- NEW Effect 5: Fetch Stats Summary when Tab Changes ---
+  useEffect(() => {
+    if (activeTab === 'statistics' && userInfo && !statsFetched.current) {
+      console.log("[Effect 5] Statistics tab active, fetching summary...");
+      fetchUserStats();
+    }
+    // Optionally reset statsFetched if user changes? Or keep it fetched for session.
+    // For now, it fetches only once per session when the tab is first clicked.
+  }, [activeTab, userInfo, fetchUserStats]);
+  // --- End NEW Effect 5 ---
 
   // Sample data for the time played chart (keep for now, replace if needed)
   const timePlayedData = [
@@ -1065,13 +1151,154 @@ const Dashboard = () => {
 
           {/* Placeholder for Statistics Tab Content */}
           {activeTab === 'statistics' && (
-             <div className={`p-6 rounded-2xl ${
+             <div className={`p-1 rounded-2xl ${ // Reduced padding for content density
                   darkMode
                     ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 shadow-lg'
                     : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30 shadow-lg'
                 }`}>
-                <h1 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Estadísticas</h1>
-                <p className="text-sm text-gray-500">El contenido detallado de estadísticas irá aquí.</p>
+                <h1 className={`text-2xl font-bold mb-6 px-5 pt-5 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Estadísticas Detalladas</h1>
+
+                {loadingUserStats && <p className="text-center p-6 text-gray-500">Cargando estadísticas...</p>}
+                {errorUserStats && <p className="text-center p-6 text-red-500">Error: {errorUserStats}</p>}
+
+                {userStatsSummary && (
+                    <div className="space-y-6 p-5">
+                        {/* --- Profile Summary --- */}
+                        <section>
+                            <h2 className="text-lg font-semibold mb-3">Resumen del Perfil</h2>
+                            <div className={`p-4 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'} flex items-center space-x-4`}>
+                               {/* Level Badge (similar to dashboard) */}
+                                <div className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center ${darkMode ? 'bg-primary-yellow/20 border border-primary-yellow/50' : 'bg-blue-100 border border-blue-300'}`}>
+                                    <span className={`font-bold text-2xl ${darkMode ? 'text-primary-yellow' : 'text-blue-700'}`}>{userStatsSummary.profile.nivel}</span>
+                                </div>
+                                <div className="flex-grow">
+                                    <p className="font-bold text-xl">{userStatsSummary.profile.gamertag}</p>
+                                    <span className={`block text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Progreso al Nivel {userStatsSummary.profile.nivel + 1}</span>
+                                    <div className="relative w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700 overflow-hidden">
+                                        <div 
+                                            className="absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-yellow-400 to-primary-yellow dark:from-yellow-500 dark:to-yellow-400 shadow-inner"
+                                            style={{ width: `${userStatsSummary.profile.progreso}%` }}
+                                        ></div>
+                                        <div className="absolute inset-0 flex items-center justify-end pr-3">
+                                            <span className={`text-[10px] font-bold ${userStatsSummary.profile.progreso > 50 ? 'text-gray-800' : (darkMode? 'text-gray-200' : 'text-gray-700') } mix-blend-difference`}>
+                                                {userStatsSummary.profile.progreso} / 100 XP
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* --- General Performance --- */}
+                        <section>
+                            <h2 className="text-lg font-semibold mb-3">Rendimiento General</h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                <div className={`p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}`}>
+                                    <p className="text-2xl font-bold">{userStatsSummary.totals.partidas}</p>
+                                    <p className="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">Partidas Jugadas</p>
+                                </div>
+                                <div className={`p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}`}>
+                                    <p className="text-2xl font-bold text-green-500">{userStatsSummary.totals.victorias}</p>
+                                    <p className="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">Victorias</p>
+                                </div>
+                                <div className={`p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}`}>
+                                    <p className="text-2xl font-bold text-red-500">{userStatsSummary.totals.derrotas}</p>
+                                    <p className="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">Derrotas</p>
+                                </div>
+                                <div className={`p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}`}>
+                                    <p className="text-2xl font-bold">{userStatsSummary.totals.winRate}%</p>
+                                    <p className="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">Tasa Victorias</p>
+                                </div>
+                                <div className={`p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'} col-span-2 md:col-span-2`}>
+                                    <p className="text-xl font-semibold">{formatTotalDuration(userStatsSummary.totals.totalTimePlayedSeconds)}</p>
+                                    <p className="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">Tiempo Total Jugado</p>
+                                </div>
+                                <div className={`p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'} col-span-2 md:col-span-2`}>
+                                     <p className="text-xl font-semibold">{formatDurationForChart(userStatsSummary.totals.avgTimePerGameSeconds)}</p>
+                                     <p className="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">Tiempo Medio / Partida</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* --- Charts Section --- */}
+                        <section className="grid md:grid-cols-2 gap-6">
+                            {/* Win Rate Pie Chart */}
+                            <div className={`p-4 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}`}>
+                                <h3 className="text-md font-semibold mb-2 text-center">Victorias vs Derrotas</h3>
+                                {(userStatsSummary.totals.partidas > 0) ? (
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <PieChart>
+                                            <Pie 
+                                                data={[
+                                                    { name: 'Victorias', value: userStatsSummary.totals.victorias },
+                                                    { name: 'Derrotas', value: userStatsSummary.totals.derrotas },
+                                                ]}
+                                                cx="50%"
+                                                cy="50%"
+                                                labelLine={false}
+                                                outerRadius={80}
+                                                fill="#8884d8"
+                                                dataKey="value"
+                                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                                fontSize={12}
+                                            >
+                                                <Cell key={`cell-0`} fill={darkMode ? "#4ade80" : "#16a34a"} /> {/* Green for wins */}
+                                                <Cell key={`cell-1`} fill={darkMode ? "#f87171" : "#dc2626"} /> {/* Red for losses */}
+                                            </Pie>
+                                            <Tooltip formatter={(value, name) => [value, name]} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <p className="text-sm text-gray-500 text-center pt-10">No hay datos suficientes.</p>
+                                )}
+                            </div>
+
+                            {/* Daily Activity Bar Chart */}
+                            <div className={`p-4 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}`}>
+                                 <h3 className="text-md font-semibold mb-2 text-center">Actividad Diaria (Últimos 7 días)</h3>
+                                 {(userStatsSummary.dailyActivity && userStatsSummary.dailyActivity.length > 0) ? (
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <BarChart data={userStatsSummary.dailyActivity} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#444' : '#ccc'} opacity={0.5}/>
+                                            <XAxis dataKey="day" stroke={darkMode ? '#999' : '#666'} tick={{ fontSize: 10 }}/>
+                                            <YAxis stroke={darkMode ? '#999' : '#666'} tick={{ fontSize: 10 }} allowDecimals={false} />
+                                            <Tooltip contentStyle={{ backgroundColor: darkMode ? '#333' : '#fff', border: 'none', borderRadius: '8px'}} itemStyle={{ color: darkMode ? '#ddd' : '#333' }} labelStyle={{ fontWeight: 'bold'}}/>
+                                            <Legend wrapperStyle={{ fontSize: '10px'}} />
+                                            <Bar dataKey="victorias" fill={darkMode ? "#4ade80" : "#16a34a"} name="Victorias" />
+                                            <Bar dataKey="derrotas" fill={darkMode ? "#f87171" : "#dc2626"} name="Derrotas" />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                     <p className="text-sm text-gray-500 text-center pt-10">No hay actividad reciente.</p>
+                                )}
+                            </div>
+                        </section>
+
+                        {/* --- Game History --- */}
+                        <section>
+                             <h2 className="text-lg font-semibold mb-3">Historial Reciente (Últimas 15)</h2>
+                             {(userStatsSummary.history && userStatsSummary.history.length > 0) ? (
+                                <div className={`rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'} overflow-hidden max-h-80 overflow-y-auto`}> 
+                                    <ul className="divide-y ${darkMode ? 'divide-gray-700/50' : 'divide-gray-200/50'}">
+                                        {userStatsSummary.history.map((game, index) => (
+                                            <li key={index} className="flex justify-between items-center text-sm p-3">
+                                                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{game.date}</span>
+                                                <span className={`font-medium ${game.outcome === 'victory' ? (darkMode ? 'text-green-400' : 'text-green-600') : (darkMode ? 'text-red-400' : 'text-red-600')}`}>
+                                                    {game.outcome === 'victory' ? '🏆 Victoria' : '💀 Derrota'}
+                                                </span>
+                                                <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                    {game.time} 
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                             ) : (
+                                 <p className="text-sm text-gray-500 text-center py-4">No hay historial de partidas.</p>
+                             )}
+                        </section>
+                    </div>
+                )}
               </div>
           )}
 
