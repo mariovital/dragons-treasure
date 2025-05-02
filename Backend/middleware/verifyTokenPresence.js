@@ -18,7 +18,8 @@ const verifyTokenPresence = (req, res, next) => {
   req.token = token; 
   
   console.log("[Auth Middleware] Token found and attached to req.token.");
+  console.log("[Auth Middleware] Value being attached:", req.token);
   next(); // Continuar al siguiente middleware o ruta
 };
 
-module.exports = verifyTokenPresence; 
+export { verifyTokenPresence }; 

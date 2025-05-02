@@ -7,6 +7,7 @@ const AULIFY_API_KEY = process.env.AULIFY_API_KEY;
 
 // Controlador para obtener las monedas del usuario desde Aulify
 const getCoinsController = async (req, res) => {
+    console.log("[Aulify Controller - getCoins] Value of req.token at start:", req.token);
     const aulifyToken = req.token; // Token extraído por el middleware
 
     if (!aulifyToken) {
@@ -44,6 +45,7 @@ const getCoinsController = async (req, res) => {
 
 // Controlador para obtener el último sticker del usuario desde Aulify
 const getLastStickerController = async (req, res) => {
+    console.log("[Aulify Controller - getLastSticker] Value of req.token at start:", req.token);
     const aulifyToken = req.token; // Token extraído por el middleware
 
      if (!aulifyToken) {
