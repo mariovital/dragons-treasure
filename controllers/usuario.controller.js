@@ -1,5 +1,6 @@
-
 import { pool } from "../helpers/mysql-config.js"
+import axios from 'axios';
+import 'dotenv/config';
 
 const getUser = async (req, res) => {
     const { id } = req.params
@@ -71,4 +72,76 @@ const createOrGetUser = async (req, res) => {
     }
 }
 
-export { getUser, createOrGetUser };
+const AULIFY_API_URL = 'https://www.aulify.mx';
+const AULIFY_API_KEY = process.env.AULIFY_API_KEY;
+
+// Controlador para sincronizar monedas desde Aulify y actualizar la DB local
+const syncCoinsController = async (req, res) => {
+    const userId = req.userId; // Obtenido del middleware verifyTokenPresence
+    const aulifyToken = req.headers['x-aulify-token']; // Token de Aulify enviado por el frontend
+
+    if (!userId) {
+        return res.status(401).json({ message: 'No autorizado (Falta userId).' });
+    }
+    if (!aulifyToken) {
+        return res.status(400).json({ message: 'Token de Aulify (X-Aulify-Token header) no encontrado.' });
+    }
+    if (!AULIFY_API_KEY) {
+        console.error("[Sync Coins] AULIFY_API_KEY no está configurada.");
+        return res.status(500).json({ message: 'Error interno: Clave API no configurada.' });
+    }
+
+    console.log(`[Sync Coins] Iniciando sincronización para usuario ID: ${userId}, Token Aulify: ...${aulifyToken.slice(-5)}`);
+
+    let connection;
+    try {
+        // 1. Obtener monedas actuales de Aulify
+        console.log("[Sync Coins] Llamando a Aulify /getCoins...");
+        const aulifyCoinsResponse = await axios.get(`${AULIFY_API_URL}/getCoins`, {
+            headers: {
+                'Authorization': `Bearer ${aulifyToken}`,
+                'X-Api-Key': AULIFY_API_KEY
+            }
+        });
+
+        if (aulifyCoinsResponse.data && typeof aulifyCoinsResponse.data.coins === 'number') {
+            const currentCoins = aulifyCoinsResponse.data.coins;
+            console.log(`[Sync Coins] Monedas obtenidas de Aulify: ${currentCoins}`);
+
+            // 2. Actualizar la base de datos local
+            connection = await pool.getConnection(); // Assuming pool is available via import
+            console.log(`[Sync Coins] Actualizando monedas en DB local para usuario ${userId}...`);
+            const [updateResult] = await connection.execute(
+                'UPDATE usuario SET monedas = ? WHERE id = ?',
+                [currentCoins, userId]
+            );
+
+            if (updateResult.affectedRows > 0) {
+                console.log(`[Sync Coins] Monedas actualizadas correctamente en DB local para usuario ${userId}.`);
+                res.json({ message: 'Monedas sincronizadas correctamente.', coins: currentCoins });
+            } else {
+                // Esto podría pasar si el userId del token no existe en la DB.
+                console.warn(`[Sync Coins] No se encontró al usuario ${userId} en la base de datos para actualizar monedas.`);
+                res.status(404).json({ message: 'Usuario no encontrado para actualizar monedas.' });
+            }
+
+        } else {
+            console.warn(`[Sync Coins] Respuesta inesperada de Aulify /getCoins:`, aulifyCoinsResponse.data);
+            res.status(502).json({ message: 'Respuesta inesperada del servicio de monedas.' }); // 502 Bad Gateway
+        }
+
+    } catch (error) {
+        console.error("[Sync Coins] Error durante la sincronización:", error.response?.data || error.message);
+        const status = error.response ? error.response.status : 500;
+        const message = error.response?.data?.error || 'Error durante la sincronización de monedas.';
+        res.status(status).json({ message });
+    } finally {
+        if (connection) {
+            connection.release();
+            console.log("[Sync Coins] Conexión a DB liberada.");
+        }
+    }
+};
+
+// Export existing functions AND the new one
+export { getUser, createOrGetUser, syncCoinsController };

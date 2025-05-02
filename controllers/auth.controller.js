@@ -68,45 +68,50 @@ const updateUserStickerCount = async (localUserId, aulifyToken) => {
 const updateUserCoinCount = async (localUserId, aulifyToken) => {
   //------- Verificación del Token de Aulify -------
   if (!aulifyToken) {
-    console.warn(`[Monedas] No se proporcionó token de Aulify para usuario ID: ${localUserId}. No se pueden actualizar monedas.`);
-    return;
+    console.warn(`[Monedas Update] No se proporcionó token de Aulify para usuario ID: ${localUserId}. No se pueden actualizar monedas.`);
+    return; // Devolver explícitamente para indicar fallo
   }
   //-----------------------------------------
-  console.log(`[Monedas] Intentando obtener monedas de Aulify para usuario local ID: ${localUserId}`);
+  console.log(`[Monedas Update] Intentando obtener monedas de Aulify para usuario local ID: ${localUserId}`);
+  let connection;
   try {
     //------- Llamada a la API de Monedas de Aulify -------
+    console.log(`[Monedas Update] Llamando a ${AULIFY_COINS_URL} con token ...${aulifyToken.slice(-5)}`); // Log antes de llamar
     const coinResponse = await axios.get(AULIFY_COINS_URL, { // <-- Usar la URL de monedas
       headers: {
         'X-Api-Key': AULIFY_API_KEY,
         'Authorization': `Bearer ${aulifyToken}` // <-- Asumiendo Bearer token también aquí
       }
     });
+    console.log(`[Monedas Update] Respuesta de Aulify /getCoins: Status=${coinResponse.status}, Data=`, coinResponse.data); // Log respuesta
     //-----------------------------------------
 
     //------- Procesamiento de la Respuesta de Monedas -------
-    if (coinResponse.status === 200 && coinResponse.data && typeof coinResponse.data.coins !== 'undefined') {
+    if (coinResponse.status === 200 && coinResponse.data && typeof coinResponse.data.coins === 'number') {
       const coinCount = parseInt(coinResponse.data.coins, 10); // <-- Extraer 'coins'
 
       if (!isNaN(coinCount)) {
-        console.log(`[Monedas] Cantidad de monedas de Aulify: ${coinCount}. Actualizando DB local para usuario ${localUserId}.`);
+        console.log(`[Monedas Update] Cantidad de monedas de Aulify: ${coinCount}. Actualizando DB local para usuario ${localUserId}.`);
         //------- Actualización de la Base de Datos Local -------
-        // Asegúrate que la columna en tu tabla 'usuario' se llame 'monedas'
-        await pool.query(
+        connection = await pool.getConnection(); // Obtener conexión
+        console.log(`[Monedas Update] Ejecutando UPDATE usuario SET monedas = ${coinCount} WHERE id = ${localUserId}`); // Log SQL
+        const [updateResult] = await pool.query(
           'UPDATE usuario SET monedas = ? WHERE id = ?', // <-- Actualizar columna 'monedas'
           [coinCount, localUserId]
         );
-        console.log(`[Monedas] DB local actualizada para usuario ${localUserId}.`);
+        console.log(`[Monedas Update] Resultado del UPDATE en DB local para usuario ${localUserId}:`, updateResult); // Log resultado DB
+        return true; // Indicar éxito
         //-----------------------------------------
       } else {
-        console.warn('[Monedas] No se pudo parsear el campo "coins" como número desde la respuesta de monedas de Aulify:', coinResponse.data);
+        console.warn('[Monedas Update] No se pudo parsear el campo "coins" como número desde la respuesta de monedas de Aulify:', coinResponse.data);
       }
     } else {
-      console.error('[Monedas] Respuesta no exitosa o formato inesperado del endpoint de monedas de Aulify:', coinResponse.status, coinResponse.data);
+      console.error('[Monedas Update] Respuesta no exitosa o formato inesperado del endpoint de monedas de Aulify:', coinResponse.status, coinResponse.data);
     }
     //-----------------------------------------
   } catch (error) {
     //------- Manejo de Errores (Actualización de Monedas) -------
-    console.error(`[Monedas] Error al obtener/actualizar monedas para usuario local ID ${localUserId}:`);
+    console.error(`[Monedas Update] Error al obtener/actualizar monedas para usuario local ID ${localUserId}:`);
     if (axios.isAxiosError(error)) {
       console.error('  Error de Axios:', error.response?.status, error.response?.data || error.message);
       if (error.response?.status === 401 || error.response?.status === 403) {
@@ -116,7 +121,13 @@ const updateUserCoinCount = async (localUserId, aulifyToken) => {
       console.error('  Error general (ej. DB):', error);
     }
     //-----------------------------------------
+  } finally {
+     if (connection) {
+       connection.release(); // Liberar conexión si se obtuvo
+       console.log(`[Monedas Update] Conexión DB liberada para usuario ${localUserId}.`);
+     }
   }
+  return false; // Indicar fallo si no se completó correctamente
 };
 //-----------------------------------------
 
@@ -156,13 +167,10 @@ export const loginUser = async (req, res, next) => {
 
         // --- Handle Aulify Response ---
         if (aulifyResponse.status === 200 && aulifyResponse.data?.token) {
-            // Successful login via Aulify
             const aulifyData = aulifyResponse.data;
-            
-            // --- Log DETALLADO de la respuesta de Aulify --- 
-            console.log('[Auth Controller] Successful Aulify API Response Data:', JSON.stringify(aulifyData, null, 2));
-            // --- Fin Log Detallado ---
+            const aulifyToken = aulifyData.token; // Guardar el token de Aulify
 
+            console.log('[Auth Controller] Successful Aulify API Response Data:', JSON.stringify(aulifyData, null, 2));
             console.log(`Aulify login successful for ${email}.`);
             
             // --- Find or Create User Locally ---
@@ -176,33 +184,59 @@ export const loginUser = async (req, res, next) => {
             // Check if user exists locally
             const [existingUsers] = await pool.query("SELECT * FROM usuario WHERE email = ?", [localUserEmail]);
             let localUser;
+            let localUserId;
 
             if (existingUsers.length > 0) {
                 // User exists, update name/gamertag/level if necessary
                 localUser = existingUsers[0];
-                console.log(`Local user found (ID: ${localUser.id}). Checking for updates...`);
+                localUserId = localUser.id; // Guardar el ID local
+                console.log(`Local user found (ID: ${localUserId}). Checking for updates...`);
                 if (localUser.name !== localUserName || localUser.gamertag !== localUserGamertag) {
                    await pool.query("UPDATE usuario SET name = ?, gamertag = ? WHERE id = ?", 
-                       [localUserName, localUserGamertag, localUser.id]);
-                   console.log(`Local user (ID: ${localUser.id}) updated.`);
+                       [localUserName, localUserGamertag, localUserId]);
+                   console.log(`Local user name/gamertag (ID: ${localUserId}) updated.`);
                    // Fetch updated user data
-                   const [refreshedUser] = await pool.query("SELECT * FROM usuario WHERE id = ?", [localUser.id]);
+                   const [refreshedUser] = await pool.query("SELECT * FROM usuario WHERE id = ?", [localUserId]);
                    localUser = refreshedUser[0];
                 }
             } else {
                 // User does not exist, create them
                 console.log(`Local user not found for ${localUserEmail}. Creating...`);
                 const [insertResult] = await pool.query(
-                    "INSERT INTO usuario (email, name, gamertag) VALUES (?, ?, ?)", 
+                    "INSERT INTO usuario (email, name, gamertag, monedas, nivel, progreso) VALUES (?, ?, ?, 0, 1, 0)", // Establecer monedas iniciales a 0
                     [localUserEmail, localUserName, localUserGamertag]
                 );
-                const newUserId = insertResult.insertId;
-                 console.log(`Local user created with ID: ${newUserId}.`);
+                localUserId = insertResult.insertId;
+                 console.log(`Local user created with ID: ${localUserId}.`);
                 // Fetch the newly created user
-                const [newUser] = await pool.query("SELECT * FROM usuario WHERE id = ?", [newUserId]);
+                const [newUser] = await pool.query("SELECT * FROM usuario WHERE id = ?", [localUserId]);
                 localUser = newUser[0];
             }
             
+            // --- INICIO: Obtener y actualizar monedas/stickers DESPUÉS de tener localUserId ---
+            // Llamar a las funciones auxiliares pasando el ID local y el token de Aulify
+            if (localUserId && aulifyToken) {
+                 console.log(`[Auth Controller] Iniciando actualización post-login para usuario ${localUserId}...`);
+                 // Ejecutar en paralelo para eficiencia (no esperar una para empezar la otra)
+                 await Promise.allSettled([
+                     updateUserCoinCount(localUserId, aulifyToken),
+                     updateUserStickerCount(localUserId, aulifyToken)
+                 ]);
+                 console.log(`[Auth Controller] Actualización de monedas/stickers post-login completada (o intentada) para usuario ${localUserId}.`);
+
+                 // Volver a cargar los datos del usuario DESPUÉS de actualizar monedas/stickers
+                 const [refreshedUser] = await pool.query("SELECT * FROM usuario WHERE id = ?", [localUserId]);
+                 if (refreshedUser.length > 0) {
+                    localUser = refreshedUser[0]; // Actualizar localUser con los datos más recientes
+                 } else {
+                    console.error(`[Auth Controller] ¡Error crítico! No se pudo recargar el usuario ${localUserId} después de la actualización.`);
+                    // Manejar este caso improbable pero posible
+                 }
+            } else {
+                 console.warn(`[Auth Controller] No se pudo actualizar monedas/stickers post-login: Falta localUserId (${localUserId}) o aulifyToken (${!!aulifyToken})`);
+            }
+            // --- FIN: Obtener y actualizar monedas/stickers ---
+
             // --- Generate OUR backend JWT ---
             if (!BACKEND_JWT_SECRET) {
                 console.error('[Auth Controller] Error: BACKEND_JWT_SECRET no está definida en .env');
@@ -210,14 +244,14 @@ export const loginUser = async (req, res, next) => {
                 return res.status(500).json({ success: false, message: 'Error de configuración interna del servidor [JWT Secret Missing]' });
             }
             
-            const payload = { userId: localUser.id }; // Payload contains our local user ID
+            const payload = { userId: localUserId }; // Usar el ID local obtenido
             const options = { expiresIn: '8h' }; // Set token expiration (e.g., 8 hours)
             const ourJwtToken = jwt.sign(payload, BACKEND_JWT_SECRET, options);
-            console.log(`[Auth Controller] Generated our backend JWT for user ID: ${localUser.id}`);
+            console.log(`[Auth Controller] Generated our backend JWT for user ID: ${localUserId}`);
             // --- End JWT Generation ---
             
             // Prepare local user data to send back (exclude sensitive info like password hash if it existed)
-            const userToSend = {
+            const userToSend = localUser ? {
                 id: localUser.id,
                 email: localUser.email,
                 name: localUser.name,
@@ -226,7 +260,7 @@ export const loginUser = async (req, res, next) => {
                 ultimo_sticker_desbloqueado: localUser.ultimo_sticker_desbloqueado,
                 nivel: localUser.nivel,
                 progreso: localUser.progreso
-            };
+            } : null; // Enviar null si hubo error al recargar el usuario
 
             // --- Log para verificar datos enviados --- 
             console.log('[Auth Controller] User data being sent to frontend:', userToSend);
@@ -237,7 +271,7 @@ export const loginUser = async (req, res, next) => {
                 success: true,
                 message: 'Login successful',
                 token: ourJwtToken, // Send OUR JWT token
-                aulifyToken: aulifyData.token, // Also send Aulify's token
+                aulifyToken: aulifyToken, // Also send Aulify's token
                 user: userToSend // Local user data
             });
 

@@ -672,28 +672,59 @@ const Dashboard = () => {
     }
   }, [userInfo, fetchDashboardData]); // Depend on userInfo and the fetch function itself
 
-  // --- NEW Effect 4: Re-fetch data on Window Focus ---
+  // --- NEW Effect 4: Re-fetch data and Sync Coins on Window Focus ---
   useEffect(() => {
-    const handleFocus = () => {
-        console.log("[Focus Handler] Window focused. Re-fetching data...");
-        // Reset the flag ONLY if user info is present
-        // We don't reset it if the user logs out and logs back in (Effect 1 handles that)
-        if(userInfo) {
-            // No need to reset hasFetchedData.current here, just trigger the fetch
-            fetchDashboardData(); // Trigger data fetch
+    const handleFocus = async () => { // Convertir handleFocus a async
+        console.log("[Focus Handler] Window focused. Re-fetching data and syncing coins...");
+        if (userInfo) {
+            // 1. Trigger dashboard data refetch (ya existente)
+            fetchDashboardData();
+
+            // 2. Trigger coin sync with backend
+            const ourToken = localStorage.getItem('token');
+            const aulifyApiToken = localStorage.getItem('aulifyToken');
+
+            if (!ourToken || !aulifyApiToken) {
+                console.warn("[Focus Handler] No se pueden sincronizar monedas: faltan tokens.");
+                return; // Salir si faltan tokens
+            }
+
+            try {
+                 console.log("[Focus Handler] Calling PUT /api/usuario/sync-coins...");
+                 const syncResponse = await fetch('http://localhost:3000/api/usuario/sync-coins', {
+                     method: 'PUT',
+                     headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ourToken}`,
+                        'X-Aulify-Token': aulifyApiToken
+                     }
+                     // No necesitamos body para este PUT
+                 });
+
+                 if (syncResponse.ok) {
+                     const syncData = await syncResponse.json();
+                     console.log("[Focus Handler] Monedas sincronizadas con éxito:", syncData);
+                     // Opcional: Actualizar el estado local de monedas si lo tuviéramos,
+                     // pero como lo leemos directamente del proxy, no es estrictamente necesario aquí.
+                     // Ejemplo: Si tuviéramos un setLocalCoins(syncData.coins);
+                 } else {
+                     const errorData = await syncResponse.json();
+                     console.error("[Focus Handler] Error al sincronizar monedas:", syncResponse.status, errorData.message);
+                 }
+            } catch (error) {
+                console.error("[Focus Handler] Error de red al sincronizar monedas:", error);
+            }
         }
     };
 
-    console.log("[Effect 4] Adding window focus listener.");
+    console.log("[Effect 4] Adding window focus listener for data fetch and coin sync.");
     window.addEventListener('focus', handleFocus);
 
-    // Cleanup listener on component unmount
     return () => {
         console.log("[Effect 4] Removing window focus listener.");
         window.removeEventListener('focus', handleFocus);
     };
-    // Pass fetchDashboardData and userInfo in dependency array
-    // to ensure handleFocus uses the latest versions
+    // Dependencias actualizadas para incluir userInfo
   }, [fetchDashboardData, userInfo]);
   // --- End NEW Effect 4 ---
 

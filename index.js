@@ -6,8 +6,9 @@ import multer from 'multer'
 import { authRouter } from './routes/auth.js'; // <-- Add this line
 import { router as usuario } from './routes/usuario.js'
 import { router as estadistica } from './routes/estadistica.js'
-import { router as aulifyRoutes } from './Backend/routes/aulify.js'; // Corregido: Añadir Backend/
-import { verifyTokenPresence } from './Backend/middleware/verifyTokenPresence.js'; // Import the new middleware
+import { router as aulifyRoutes } from './routes/aulify.js';
+import { verifyTokenPresence } from './middleware/verifyTokenPresence.js';
+import userRoutes from './routes/user.routes.js';
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -82,9 +83,9 @@ app.post('/test-victory', (req, res) => {
 // Rutas
 app.use('/aulifyLogin', authRouter);
 app.use('/estadistica', verifyTokenPresence, estadistica);
-app.use('/aulify', verifyTokenPresence, aulifyRoutes); // Registrar rutas de Aulify
+app.use('/aulify', verifyTokenPresence, aulifyRoutes);
 app.use('/usuario', usuario);
-
+app.use('/api', verifyTokenPresence, userRoutes);
 
 // Ruta Prueba
 app.get('/', (req, res) => {
