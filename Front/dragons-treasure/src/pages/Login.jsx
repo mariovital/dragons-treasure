@@ -95,7 +95,7 @@ const Login = () => {
 
     try {
         // Llama a tu backend local
-        const response = await fetch('http://localhost:3000/aulifyLogin', { 
+        const response = await fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/aulifyLogin', { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -214,11 +214,11 @@ const Dashboard = () => {
 
     try {
       const results = await Promise.allSettled([
-          fetch(`http://localhost:3000/estadistica/ultimas-partidas`, { method: 'GET', headers: headersOurApi }), 
-          fetch('http://localhost:3000/estadistica/leaderboard', { method: 'GET', headers: headersOurApi }),
-          fetch(`http://localhost:3000/estadistica/tiempo-jugado`, { method: 'GET', headers: headersOurApi }), 
-          fetch('http://localhost:3000/aulify/coins', { method: 'GET', headers: headersProxyApi }), // Use proxy headers
-          fetch('http://localhost:3000/aulify/last-sticker', { method: 'GET', headers: headersProxyApi }) // Use proxy headers
+          fetch(`Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/estadistica/ultimas-partidas`, { method: 'GET', headers: headersOurApi }), 
+          fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/estadistica/leaderboard', { method: 'GET', headers: headersOurApi }),
+          fetch(`Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/estadistica/tiempo-jugado`, { method: 'GET', headers: headersOurApi }), 
+          fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/aulify/coins', { method: 'GET', headers: headersProxyApi }), // Use proxy headers
+          fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/aulify/last-sticker', { method: 'GET', headers: headersProxyApi }) // Use proxy headers
       ]);
       console.log("[fetchDashboardData] All fetches completed.");
 
@@ -349,7 +349,7 @@ const Dashboard = () => {
       };
 
       try {
-          const response = await fetch('http://localhost:3000/estadistica/user-summary', { method: 'GET', headers: headers });
+          const response = await fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/estadistica/user-summary', { method: 'GET', headers: headers });
           
           if (!response.ok) {
               const errorData = await response.json();
@@ -691,7 +691,7 @@ const Dashboard = () => {
 
             try {
                  console.log("[Focus Handler] Calling PUT /api/usuario/sync-coins...");
-                 const syncResponse = await fetch('http://localhost:3000/api/usuario/sync-coins', {
+                 const syncResponse = await fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/api/usuario/sync-coins', {
                      method: 'PUT',
                      headers: {
                         'Content-Type': 'application/json',
