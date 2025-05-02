@@ -96,15 +96,15 @@ const Login = () => {
     try {
         // Llama a tu backend local
         const response = await fetch('http://localhost:3000/aulifyLogin', { 
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: formData.username, password: formData.password }),
-        });
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: formData.username, password: formData.password }),
+      });
 
         // Lee la respuesta JSON de TU backend
-        const data = await response.json(); 
+      const data = await response.json();
 
         // Verifica la propiedad 'success' de la respuesta de tu backend
         if (data.success) { 
@@ -120,18 +120,18 @@ const Login = () => {
             console.log('Aulify Token stored.');
 
             // Redirigir al dashboard
-            navigate('/dashboard');
+        navigate('/dashboard');
 
-        } else {
+      } else {
             // Login fallido (tu backend reenvió el error de Aulify o tuvo un error propio)
             console.error('Local backend login failed:', data);
             // Usa el mensaje de error de la respuesta de tu backend
             setError(data.message || 'Login failed. Please check your credentials.'); 
-        }
+      }
     } catch (err) {
         // ... manejo de error de red ...
-        console.error('Network or other error during login:', err);
-        setError('Login failed due to a network error. Please try again.');
+      console.error('Network or other error during login:', err);
+      setError('Login failed due to a network error. Please try again.');
     } finally {
         setLoading(false);
     }

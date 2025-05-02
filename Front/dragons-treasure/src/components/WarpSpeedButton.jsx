@@ -222,7 +222,7 @@ const WarpSpeedButton = ({ children, onClick, className, type = "button" }) => {
         
         const startX = parseFloat(particle.dataset.startX) || 0;
         const startY = parseFloat(particle.dataset.startY) || 0;
-
+        
         particle.animate(
           [
             { 

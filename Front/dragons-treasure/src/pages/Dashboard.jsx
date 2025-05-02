@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { Coins, Sparkles } from 'lucide-react';
 
 // Import decorative assets for additional elements
 import blueCircleImg from '../assets/images/blue_circle.png';
@@ -82,6 +83,14 @@ const Dashboard = () => {
   const [loadingTimePlayed, setLoadingTimePlayed] = useState(true);
   const [errorTimePlayed, setErrorTimePlayed] = useState(null);
 
+  // --- NEW State for Coins and Sticker ---
+  const [coinsData, setCoinsData] = useState(null); // { coins: number } | null
+  const [stickerData, setStickerData] = useState(null); // { sticker: { name, description, image } | null } | null
+  const [loadingCoins, setLoadingCoins] = useState(true);
+  const [loadingSticker, setLoadingSticker] = useState(true);
+  const [errorCoins, setErrorCoins] = useState(null);
+  const [errorSticker, setErrorSticker] = useState(null);
+
   // Ref to track if initial data fetch has been performed for the current user
   const hasFetchedData = useRef(false);
 
@@ -108,6 +117,8 @@ const Dashboard = () => {
       setLoadingRecent(false);
       setLoadingLeaderboard(false);
       setLoadingTimePlayed(false);
+      setLoadingCoins(false);
+      setLoadingSticker(false);
       return;
     }
 
@@ -115,9 +126,13 @@ const Dashboard = () => {
     setLoadingRecent(true);
     setLoadingLeaderboard(true);
     setLoadingTimePlayed(true);
+    setLoadingCoins(true);
+    setLoadingSticker(true);
     setErrorRecent(null);
     setErrorLeaderboard(null);
     setErrorTimePlayed(null);
+    setErrorCoins(null);
+    setErrorSticker(null);
 
     const headers = {
       'Content-Type': 'application/json',
@@ -128,7 +143,9 @@ const Dashboard = () => {
       const results = await Promise.allSettled([
           fetch(`http://localhost:3000/estadistica/ultimas-partidas/${currentUserId}`, { method: 'GET', headers: headers }),
           fetch('http://localhost:3000/estadistica/leaderboard', { method: 'GET', headers: headers }),
-          fetch(`http://localhost:3000/estadistica/tiempo-jugado/${currentUserId}`, { method: 'GET', headers: headers })
+          fetch(`http://localhost:3000/estadistica/tiempo-jugado/${currentUserId}`, { method: 'GET', headers: headers }),
+          fetch('http://localhost:3000/aulify/coins', { method: 'GET', headers: headers }),
+          fetch('http://localhost:3000/aulify/last-sticker', { method: 'GET', headers: headers })
       ]);
       console.log("[fetchDashboardData] All fetches completed.");
 
@@ -139,8 +156,9 @@ const Dashboard = () => {
           setRecentGamesData(await recentResult.value.json());
       } else {
           const status = recentResult.status === 'fulfilled' ? recentResult.value.status : 'rejected';
-          setErrorRecent(`Failed (${status})`); 
-          console.error("Error fetching recent games:", recentResult.status === 'rejected' ? recentResult.reason : await recentResult.value.text());
+          const errorText = recentResult.status === 'rejected' ? recentResult.reason : await recentResult.value.text();
+          setErrorRecent(`Failed (${status})`);
+          console.error("Error fetching recent games:", errorText);
       }
       // Leaderboard
       const leaderboardResult = results[1];
@@ -148,8 +166,9 @@ const Dashboard = () => {
           setLeaderboardData(await leaderboardResult.value.json());
       } else {
            const status = leaderboardResult.status === 'fulfilled' ? leaderboardResult.value.status : 'rejected';
+          const errorText = leaderboardResult.status === 'rejected' ? leaderboardResult.reason : await leaderboardResult.value.text();
           setErrorLeaderboard(`Failed (${status})`);
-          console.error("Error fetching leaderboard:", leaderboardResult.status === 'rejected' ? leaderboardResult.reason : await leaderboardResult.value.text());
+          console.error("Error fetching leaderboard:", errorText);
       }
       // Time Played
       const timePlayedResult = results[2];
@@ -162,20 +181,49 @@ const Dashboard = () => {
           setTimePlayedChartData(transformedData);
       } else {
            const status = timePlayedResult.status === 'fulfilled' ? timePlayedResult.value.status : 'rejected';
+          const errorText = timePlayedResult.status === 'rejected' ? timePlayedResult.reason : await timePlayedResult.value.text();
           setErrorTimePlayed(`Failed (${status})`);
-          console.error("Error fetching time played:", timePlayedResult.status === 'rejected' ? timePlayedResult.reason : await timePlayedResult.value.text());
+          console.error("Error fetching time played:", errorText);
+      }
+
+      // Coins
+      const coinsResult = results[3];
+      if (coinsResult.status === 'fulfilled' && coinsResult.value.ok) {
+          setCoinsData(await coinsResult.value.json());
+      } else {
+          const status = coinsResult.status === 'fulfilled' ? coinsResult.value.status : 'rejected';
+          const errorText = coinsResult.status === 'rejected' ? coinsResult.reason : await coinsResult.value.text();
+          setErrorCoins(`Failed (${status})`);
+          console.error("Error fetching coins:", errorText);
+      }
+
+      // Last Sticker
+      const stickerResult = results[4];
+      if (stickerResult.status === 'fulfilled' && stickerResult.value.ok) {
+          setStickerData(await stickerResult.value.json());
+      } else {
+           const status = stickerResult.status === 'fulfilled' ? stickerResult.value.status : 'rejected';
+           const errorText = stickerResult.status === 'rejected' ? stickerResult.reason : await stickerResult.value.text();
+          setErrorSticker(`Failed (${status})`);
+          console.error("Error fetching last sticker:", errorText);
       }
 
     } catch (error) {
-      console.error("[fetchDashboardData] Unexpected error:", error);
-      setErrorRecent('Fetch error');
-      setErrorLeaderboard('Fetch error');
-      setErrorTimePlayed('Fetch error');
+      console.error("[fetchDashboardData] Unexpected error during fetch:", error);
+      // Set generic error for all if a fundamental fetch issue occurs
+      const genericError = 'Fetch error';
+      setErrorRecent(prev => prev || genericError);
+      setErrorLeaderboard(prev => prev || genericError);
+      setErrorTimePlayed(prev => prev || genericError);
+      setErrorCoins(prev => prev || genericError);
+      setErrorSticker(prev => prev || genericError);
     } finally {
       console.log("[fetchDashboardData] Setting loading states to false.");
       setLoadingRecent(false);
       setLoadingLeaderboard(false);
       setLoadingTimePlayed(false);
+      setLoadingCoins(false);
+      setLoadingSticker(false);
     }
   }, [userInfo]); // Depends on userInfo to get the correct ID
   // --- End Refactored Fetch Logic ---
@@ -189,45 +237,72 @@ const Dashboard = () => {
     if (storedUserData) {
         try {
             const parsedData = JSON.parse(storedUserData);
-            if (parsedData && parsedData.id && parsedData.nivel !== undefined && parsedData.progreso !== undefined) { 
+            if (parsedData && parsedData.id && parsedData.nivel !== undefined && parsedData.progreso !== undefined && parsedData.gamertag) {
                 console.log("[Effect 1] User data FOUND, setting state:", parsedData);
                 setUserInfo(parsedData);
                 hasFetchedData.current = false; // Reset fetch flag when user data is loaded/changed
             } else {
-                console.error("[Effect 1] Parsed user data invalid/missing fields.");
+                console.error("[Effect 1] Parsed user data invalid/missing fields:", parsedData);
                 setUserInfo(null); // Ensure userInfo is null if data is bad
                 hasFetchedData.current = false;
                 setErrorRecent("Invalid user data in storage.");
                 setErrorLeaderboard("Invalid user data in storage.");
+                setErrorTimePlayed("Invalid user data in storage.");
+                setErrorCoins("Invalid user data in storage.");
+                setErrorSticker("Invalid user data in storage.");
                 setLoadingRecent(false); // Stop loading if data is bad
                 setLoadingLeaderboard(false);
+                setLoadingTimePlayed(false);
+                setLoadingCoins(false);
+                setLoadingSticker(false);
             }
         } catch (e) {
              console.error("[Effect 1] Failed to parse user data", e);
              setUserInfo(null); // Ensure userInfo is null on error
              hasFetchedData.current = false;
-             setErrorRecent("Corrupt user data found.");
-             setErrorLeaderboard("Corrupt user data found.");
+             const corruptError = "Corrupt user data found.";
+             setErrorRecent(corruptError);
+             setErrorLeaderboard(corruptError);
+             setErrorTimePlayed(corruptError);
+             setErrorCoins(corruptError);
+             setErrorSticker(corruptError);
              setLoadingRecent(false); // Stop loading on parse error
              setLoadingLeaderboard(false);
+             setLoadingTimePlayed(false);
+             setLoadingCoins(false);
+             setLoadingSticker(false);
         }
     } else {
         console.warn("[Effect 1] User data NOT found in localStorage.");
         setUserInfo(null); // Ensure userInfo is null if not found
         hasFetchedData.current = false;
-        setErrorRecent("User data not found. Please login again.");
-        setErrorLeaderboard("User data not found. Please login again.");
+        const notFoundError = "User data not found. Please login again.";
+        setErrorRecent(notFoundError);
+        setErrorLeaderboard(notFoundError);
+        setErrorTimePlayed(notFoundError);
+        setErrorCoins(notFoundError);
+        setErrorSticker(notFoundError);
         setLoadingRecent(false); // Stop loading if no user data
         setLoadingLeaderboard(false);
+        setLoadingTimePlayed(false);
+        setLoadingCoins(false);
+        setLoadingSticker(false);
     }
     
     if (!storedToken) {
          console.warn("[Effect 1] Aulify token NOT found in localStorage.");
          // Set error only if another error isn't already present
-         setErrorRecent(prev => prev || "Auth token is missing.");
+         const tokenMissingError = "Auth token is missing.";
+         setErrorRecent(prev => prev || tokenMissingError);
+         setErrorLeaderboard(prev => prev || tokenMissingError);
+         setErrorTimePlayed(prev => prev || tokenMissingError);
+         setErrorCoins(prev => prev || tokenMissingError);
+         setErrorSticker(prev => prev || tokenMissingError);
          setLoadingRecent(false); // Also stop loading if token is missing
          setLoadingLeaderboard(false);
-         setLoadingTimePlayed(false); // Stop time played loading too
+         setLoadingTimePlayed(false);
+         setLoadingCoins(false);
+         setLoadingSticker(false);
     }
 
   }, []); // Run only once on mount
@@ -248,7 +323,7 @@ const Dashboard = () => {
           y: Math.random() * (window.innerHeight - size),
           size: size,
           rotation: Math.random() * 360,
-          opacity: Math.random() * 0.3 + 0.2, // Between 0.2 and 0.5 for better visibility  
+          opacity: Math.random() * 0.3 + 0.2, // Between 0.2 and 0.5 for better visibility
           zIndex: Math.floor(Math.random() * 10),
           // Physics properties
           vx: (Math.random() - 0.5) * 1.5, // Increased horizontal velocity
@@ -462,7 +537,7 @@ const Dashboard = () => {
         // Reset the flag ONLY if user info is present
         // We don't reset it if the user logs out and logs back in (Effect 1 handles that)
         if(userInfo) {
-            hasFetchedData.current = false; // Allow next fetch cycle
+            // No need to reset hasFetchedData.current here, just trigger the fetch
             fetchDashboardData(); // Trigger data fetch
         }
     };
@@ -475,7 +550,7 @@ const Dashboard = () => {
         console.log("[Effect 4] Removing window focus listener.");
         window.removeEventListener('focus', handleFocus);
     };
-    // Pass fetchDashboardData and userInfo in dependency array 
+    // Pass fetchDashboardData and userInfo in dependency array
     // to ensure handleFocus uses the latest versions
   }, [fetchDashboardData, userInfo]);
   // --- End NEW Effect 4 ---
@@ -608,9 +683,10 @@ const Dashboard = () => {
             </div>
 
             {/* User welcome section - Use userInfo state */}
-            <div className="mb-3 flex flex-col items-center text-center">
+            <div className="mb-3 pb-3 border-b ${darkMode ? 'border-gray-700/50' : 'border-white/30'}">
+              <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20 mb-1 relative">
-                {/* Yellow circle background with glass effect */}
+                  {/* Yellow circle background */}
                 <div className={`w-full h-full ${darkMode ? 'bg-primary-yellow/40' : 'bg-primary-yellow/60'} rounded-full absolute backdrop-blur-sm ${darkMode ? 'border border-gray-700/50' : 'border border-white/30'}`}></div>
                 {/* Avatar */}
                 <div className="w-full h-full flex items-center justify-center relative">
@@ -619,9 +695,55 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Bienvenido,</p>
-                <p className="font-bold text-lg mt-0">{userInfo ? userInfo.gamertag : 'Usuario'}</p>
+                  <p className="font-bold text-lg mt-0">{userInfo ? userInfo.gamertag : 'Usuario'}</p>
+                </div>
               </div>
             </div>
+
+            {/* --- NEW: Coins Display --- */}
+            <div className="py-3 border-b ${darkMode ? 'border-gray-700/50' : 'border-white/30'}">
+              <div className="flex items-center justify-center space-x-2">
+                <Coins className={`w-5 h-5 ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`} />
+                {loadingCoins ? (
+                  <span className="text-xs text-gray-500">Cargando...</span>
+                ) : errorCoins ? (
+                   <span className="text-xs text-red-500" title={errorCoins}>Error</span>
+                ) : (
+                  <span className={`font-semibold text-lg ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+                    {coinsData?.coins ?? '--'}
+                  </span>
+                )}
+                 <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Monedas</span>
+              </div>
+            </div>
+            {/* --- End Coins Display --- */}
+
+             {/* --- NEW: Last Sticker Display --- */}
+            <div className="py-3">
+               <h3 className={`text-xs font-semibold uppercase text-center mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Último Sticker</h3>
+               {loadingSticker ? (
+                 <p className="text-xs text-center text-gray-500">Cargando sticker...</p>
+               ) : errorSticker ? (
+                 <p className="text-xs text-center text-red-500" title={errorSticker}>Error al cargar sticker.</p>
+               ) : stickerData?.sticker ? (
+                 <div className="flex flex-col items-center text-center space-y-1">
+                   <img
+                     src={stickerData.sticker.image}
+                     alt={stickerData.sticker.name}
+                     className={`w-16 h-16 object-contain rounded-lg p-1 ${darkMode ? 'bg-black/20' : 'bg-white/40'}`}
+                     onError={(e) => { e.target.style.display='none'; }}
+                   />
+                   <p className={`text-sm font-semibold ${darkMode ? 'text-primary-yellow' : 'text-blue-700'}`}>{stickerData.sticker.name}</p>
+                   <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{stickerData.sticker.description}</p>
+                 </div>
+               ) : (
+                 <p className="text-xs text-center text-gray-500 flex items-center justify-center space-x-1">
+                   <Sparkles className="w-3 h-3" />
+                   <span>¡Sigue jugando para conseguir stickers!</span>
+                 </p>
+               )}
+             </div>
+             {/* --- End Last Sticker Display --- */}
 
             {/* Navigation - Enhanced glass effect */}
             <nav className="flex-1">
@@ -680,27 +802,27 @@ const Dashboard = () => {
               <ul className="space-y-2">
                  {/* Dark Mode Toggle Button */}
                  <li>
-                   <button
-                      onClick={toggleDarkMode}
+              <button 
+                onClick={toggleDarkMode}
                       className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 text-sm ${darkMode ? 'hover:bg-[#2a2a2a]/50' : 'hover:bg-[#ececec]/50'} hover:backdrop-blur-lg hover:border hover:border-white/20`}
-                   >
+              >
                      <span className="mr-3 w-6 h-6 flex items-center justify-center">
                        <img src={darkMode ? lightModeIcon : darkModeIcon} alt="Toggle Theme" className="w-4 h-4" />
-                     </span>
+                </span>
                      <span>Modo {darkMode ? 'Claro' : 'Oscuro'}</span>
-                   </button>
+              </button>
                  </li>
                  {/* Logout Button */}
                  <li>
-                   <button 
+              <button 
                       onClick={handleLogout} 
                       className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 text-sm ${darkMode ? 'hover:bg-red-800/40 text-red-400' : 'hover:bg-red-100/60 text-red-600'} hover:backdrop-blur-lg hover:border hover:border-red-500/20`}
-                   >
+              >
                      <span className="mr-3 w-6 h-6 flex items-center justify-center">
                        <img src={darkMode ? salirIconLight : salirIcon} alt="Salir" className="w-4 h-4" />
-                     </span>
+                </span>
                      <span>Salir</span>
-                   </button>
+              </button>
                  </li>
               </ul>
             </div>
@@ -708,7 +830,7 @@ const Dashboard = () => {
 
           </div>
         </div>
-
+        
         {/* Main Content Area */}
         <div className="z-40 h-[95vh] overflow-y-auto py-2 px-8">
           {/* Conditional Rendering based on activeTab */}
@@ -720,7 +842,7 @@ const Dashboard = () => {
 
                 {/* Recent Games Card */}
                 <div className={`p-6 rounded-2xl ${
-                  darkMode
+              darkMode 
                     ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 shadow-lg'
                     : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30 shadow-lg'
                 }`}>
@@ -748,7 +870,7 @@ const Dashboard = () => {
                     <p className="text-sm text-gray-500">No hay partidas recientes registradas.</p>
                   )}
                 </div>
-
+                
                 {/* Leaderboard Card */}
                 <div className={`p-6 rounded-2xl ${
                   darkMode
@@ -769,7 +891,7 @@ const Dashboard = () => {
                           <div className="flex items-center space-x-3">
                             <span className="font-bold w-6 text-center">{getMedalIcon(entry.rank)}</span> {/* Use getMedalIcon */}
                             <span className={`font-medium ${darkMode ? 'text-primary-yellow' : 'text-blue-700'}`}>{entry.name}</span> {/* Display gamertag */}
-                          </div>
+                  </div>
                           <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                              {formatTime(entry.time)} {/* Use formatTime helper */}
                           </span>
@@ -779,11 +901,11 @@ const Dashboard = () => {
                   ) : (
                     <p className="text-sm text-gray-500">El leaderboard está vacío.</p>
                   )}
-                </div>
-
+            </div>
+            
                 {/* Time Played Chart Card - UPDATED */}
                 <div className={`md:col-span-2 p-6 rounded-2xl ${ 
-                  darkMode 
+              darkMode 
                     ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 shadow-lg' 
                     : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30 shadow-lg'
                 }`}>
@@ -806,17 +928,17 @@ const Dashboard = () => {
                             formatter={(value) => [`${value} horas`, 'Tiempo']} // Format tooltip content
                           />
                           <Line type="monotone" dataKey="hours" stroke={darkMode ? '#F6BA27' : '#0053B1'} strokeWidth={2} activeDot={{ r: 6 }} dot={{ r: 4 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
+                  </LineChart>
+                </ResponsiveContainer>
                     ) : (
                       <p className="text-sm text-gray-500">No hay datos de tiempo jugado para los últimos 7 días.</p>
                     )
                   }
-                </div>
-
+            </div>
+            
                 {/* --- Level & Progress Card - VISUAL UPGRADE --- */}
                 <div className={`md:col-span-2 p-6 rounded-2xl ${ 
-                  darkMode 
+              darkMode 
                     ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 shadow-lg' 
                     : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30 shadow-lg'
                 }`}>
@@ -828,7 +950,7 @@ const Dashboard = () => {
                         {/* Level Badge */}
                         <div className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center ${darkMode ? 'bg-primary-yellow/20 border border-primary-yellow/50' : 'bg-blue-100 border border-blue-300'}`}>
                           <span className={`font-bold text-2xl ${darkMode ? 'text-primary-yellow' : 'text-blue-700'}`}>{userInfo.nivel}</span>
-                        </div>
+                  </div>
 
                         {/* Progress Bar and Text Container */}
                         <div className="flex-grow space-y-1">
@@ -844,13 +966,13 @@ const Dashboard = () => {
                                aria-valuemin="0"
                                aria-valuemax="100"
                              >
-                             </div>
+              </div>
                              {/* Progress Text Overlay */}
                              <div className="absolute inset-0 flex items-center justify-end pr-3">
                                 <span className={`text-[10px] font-bold ${userInfo.progreso > 50 ? 'text-gray-800' : (darkMode? 'text-gray-200' : 'text-gray-700') } mix-blend-difference`}>
                                    {userInfo.progreso} / 100 XP
                                 </span>
-                             </div>
+            </div>
                            </div>
                         </div>
                       </div>
@@ -861,8 +983,8 @@ const Dashboard = () => {
                 </div>
                 {/* --- End Level & Progress Card --- */}
 
-              </div>
-            </div>
+                    </div>
+                  </div>
           )}
 
           {/* Placeholder for Statistics Tab Content */}
@@ -874,7 +996,7 @@ const Dashboard = () => {
                 }`}>
                 <h1 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Estadísticas</h1>
                 <p className="text-sm text-gray-500">El contenido detallado de estadísticas irá aquí.</p>
-             </div>
+              </div>
           )}
 
           {/* Placeholder for Configuration Tab Content */}
@@ -895,8 +1017,8 @@ const Dashboard = () => {
                       <img src={darkMode ? lightModeIcon : darkModeIcon} alt="Toggle Theme" className="w-4 h-4" />
                       <span>Cambiar a Modo {darkMode ? 'Claro' : 'Oscuro'}</span>
                     </button>
-                </div>
-             </div>
+            </div>
+          </div>
           )}
 
         {/* END OF MAIN CONTENT AREA DIV */}

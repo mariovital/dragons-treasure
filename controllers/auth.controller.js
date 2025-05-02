@@ -248,7 +248,7 @@ export const loginUser = async (req, res, next) => {
         // Avoid leaking detailed error info unless necessary for debugging
         res.status(500).json({ success: false, message: 'An internal server error occurred during login.' });
         // next(error); // Optionally pass to an error handling middleware
-    }
+  }
 };
 
 // Add other auth-related functions here if needed (e.g., register, logout)
