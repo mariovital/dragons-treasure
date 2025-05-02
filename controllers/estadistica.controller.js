@@ -199,10 +199,14 @@ const recordGameController = async (req, res, next) => {
         console.log(`[RecordGame] Partida insertada en estadistica con ID: ${insertResult.insertId}`);
 
         // 5. Actualizar los datos del usuario (nivel, progreso, totales)
+        // Log values before update
+        console.log(`[RecordGame] Attempting to update usuario ID ${userId} with: nivel=${newLevel}, progreso=${newProgress}, vict+=${victoriesToAdd}, derr+=${defeatsToAdd}`);
         const [updateResult] = await connection.query(
             'UPDATE usuario SET nivel = ?, progreso = ?, total_victorias = total_victorias + ?, total_derrotas = total_derrotas + ?, total_partidas = total_partidas + 1 WHERE id = ?',
             [newLevel, newProgress, victoriesToAdd, defeatsToAdd, userId]
         );
+        // Log affected rows after update
+        console.log(`[RecordGame] Update result for usuario ID ${userId}: affectedRows=${updateResult.affectedRows}`);
         
         if (updateResult.affectedRows === 0) {
              throw new Error(`No se pudo actualizar el usuario con ID ${userId}.`);
