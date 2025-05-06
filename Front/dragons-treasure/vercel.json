@@ -1,0 +1,10 @@
+{
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--preserve-symlinks"
+    }
+  },
+  "github": {
+    "silent": true
+  }
+}

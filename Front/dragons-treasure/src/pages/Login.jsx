@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
-// Import your images
+// Import your images with lowercase folder name
 import blueCircleImg from '../assets/images/blue_circle.png';
 import blueWaveImg from '../assets/images/blue_line.png';
 import yellowDotsImg from '../assets/images/yellow_dots.png';
@@ -95,7 +95,7 @@ const Login = () => {
 
     try {
         // Llama a tu backend local
-        const response = await fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/aulifyLogin', { 
+        const response = await fetch('https://ymqnqltlqg.execute-api.us-east-1.amazonaws.com/aulifyLogin', { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -176,45 +176,46 @@ export const loginUser = async (req, res, next) => {
             // --- Find or Create User Locally ---
             const localUserEmail = aulifyData.email; 
             const localUserName = aulifyData.name; 
-            const localUserLevel = aulifyData.level; // Assuming Aulify still returns level directly
-            
-            // Extract first name for gamertag
             const localUserGamertag = localUserName ? localUserName.split(' ')[0] : 'User'; 
-
-            // Check if user exists locally
-            const [existingUsers] = await pool.query("SELECT * FROM usuario WHERE email = ?", [localUserEmail]);
+            
+            // --- MODIFICADO: Especificar columnas y añadir role ---
+            const selectColumns = 'id, email, name, gamertag, role, nivel, progreso, monedas'; 
+            const [existingUsers] = await pool.query(`SELECT ${selectColumns} FROM usuario WHERE email = ?`, [localUserEmail]);
+            // --- FIN MODIFICADO ---
+            
             let localUser;
             let localUserId;
+            let userRole; // <-- Variable para guardar el rol
 
             if (existingUsers.length > 0) {
-                // User exists, update name/gamertag/level if necessary
                 localUser = existingUsers[0];
-                localUserId = localUser.id; // Guardar el ID local
-                console.log(`Local user found (ID: ${localUserId}). Checking for updates...`);
+                localUserId = localUser.id;
+                userRole = localUser.role; // <-- Guardar rol existente
+                console.log(`Local user found (ID: ${localUserId}, Role: ${userRole}). Checking for updates...`);
+                
+                // --- MODIFICADO: Actualizar name/gamertag si es necesario ---
                 if (localUser.name !== localUserName || localUser.gamertag !== localUserGamertag) {
                    await pool.query("UPDATE usuario SET name = ?, gamertag = ? WHERE id = ?", 
                        [localUserName, localUserGamertag, localUserId]);
                    console.log(`Local user name/gamertag (ID: ${localUserId}) updated.`);
-                   // Fetch updated user data
-                   const [refreshedUser] = await pool.query("SELECT * FROM usuario WHERE id = ?", [localUserId]);
-                   localUser = refreshedUser[0];
+                   // No necesitamos recargar aquí, ya tenemos el ID y rol, y las monedas/stickers se recargan después
                 }
+                // --- FIN MODIFICADO ---
             } else {
                 // User does not exist, create them
                 console.log(`Local user not found for ${localUserEmail}. Creating...`);
+                // El rol tomará el valor por defecto 'user' de la BD
                 const [insertResult] = await pool.query(
-                    "INSERT INTO usuario (email, name, gamertag, monedas, nivel, progreso) VALUES (?, ?, ?, 0, 1, 0)", // Establecer monedas iniciales a 0
+                    "INSERT INTO usuario (email, name, gamertag, monedas, nivel, progreso) VALUES (?, ?, ?, 0, 1, 0)",
                     [localUserEmail, localUserName, localUserGamertag]
                 );
                 localUserId = insertResult.insertId;
-                 console.log(`Local user created with ID: ${localUserId}.`);
-                // Fetch the newly created user
-                const [newUser] = await pool.query("SELECT * FROM usuario WHERE id = ?", [localUserId]);
-                localUser = newUser[0];
+                userRole = 'user'; // <-- Asignar rol por defecto
+                console.log(`Local user created with ID: ${localUserId}, Role: ${userRole}.`);
+                 // No necesitamos recargar aquí tampoco
             }
             
-            // --- INICIO: Obtener y actualizar monedas/stickers DESPUÉS de tener localUserId ---
-            // Llamar a las funciones auxiliares pasando el ID local y el token de Aulify
+            // --- INICIO: Obtener y actualizar monedas/stickers ---
             if (localUserId && aulifyToken) {
                  console.log(`[Auth Controller] Iniciando actualización post-login para usuario ${localUserId}...`);
                  // Ejecutar en paralelo para eficiencia (no esperar una para empezar la otra)
@@ -223,15 +224,16 @@ export const loginUser = async (req, res, next) => {
                      updateUserStickerCount(localUserId, aulifyToken)
                  ]);
                  console.log(`[Auth Controller] Actualización de monedas/stickers post-login completada (o intentada) para usuario ${localUserId}.`);
-
-                 // Volver a cargar los datos del usuario DESPUÉS de actualizar monedas/stickers
-                 const [refreshedUser] = await pool.query("SELECT * FROM usuario WHERE id = ?", [localUserId]);
-                 if (refreshedUser.length > 0) {
-                    localUser = refreshedUser[0]; // Actualizar localUser con los datos más recientes
+                 // --- MODIFICADO: Volver a cargar los datos incluyendo el ROL ---
+                 const [refreshedUserResult] = await pool.query(`SELECT ${selectColumns} FROM usuario WHERE id = ?`, [localUserId]);
+                 if (refreshedUserResult.length > 0) {
+                    localUser = refreshedUserResult[0]; // Actualizar localUser con los datos más recientes
+                    userRole = localUser.role; // Asegurar que userRole esté actualizado
                  } else {
                     console.error(`[Auth Controller] ¡Error crítico! No se pudo recargar el usuario ${localUserId} después de la actualización.`);
-                    // Manejar este caso improbable pero posible
+                    // Considerar devolver un error aquí
                  }
+                 // --- FIN MODIFICADO ---
             } else {
                  console.warn(`[Auth Controller] No se pudo actualizar monedas/stickers post-login: Falta localUserId (${localUserId}) o aulifyToken (${!!aulifyToken})`);
             }
@@ -244,37 +246,32 @@ export const loginUser = async (req, res, next) => {
                 return res.status(500).json({ success: false, message: 'Error de configuración interna del servidor [JWT Secret Missing]' });
             }
             
-            const payload = { userId: localUserId }; // Usar el ID local obtenido
-            const options = { expiresIn: '8h' }; // Set token expiration (e.g., 8 hours)
-            const ourJwtToken = jwt.sign(payload, BACKEND_JWT_SECRET, options);
-            console.log(`[Auth Controller] Generated our backend JWT for user ID: ${localUserId}`);
-            // --- End JWT Generation ---
+            // --- MODIFICADO: Añadir ROL al payload --- 
+            const tokenPayload = { userId: localUserId, role: userRole }; 
+            // --- FIN MODIFICADO ---
             
-            // Prepare local user data to send back (exclude sensitive info like password hash if it existed)
-            const userToSend = localUser ? {
+            const options = { expiresIn: '8h' }; 
+            const ourJwtToken = jwt.sign(tokenPayload, BACKEND_JWT_SECRET, options);
+            console.log(`[Auth Controller] Generated our backend JWT for user ID: ${localUserId} with role: ${userRole}`);
+
+            // --- Prepare user data to send to frontend ---
+            // --- MODIFICADO: Añadir ROL a userToSend --- 
+            const userToSend = {
                 id: localUser.id,
                 email: localUser.email,
                 name: localUser.name,
                 gamertag: localUser.gamertag,
-                monedas: localUser.monedas,
-                ultimo_sticker_desbloqueado: localUser.ultimo_sticker_desbloqueado,
+                role: localUser.role, // <-- ROL AÑADIDO
                 nivel: localUser.nivel,
-                progreso: localUser.progreso
-            } : null; // Enviar null si hubo error al recargar el usuario
+                progreso: localUser.progreso,
+                monedas: localUser.monedas, // Asegurar que esto se cargó después de sync
+                // ultimo_sticker_desbloqueado: localUser.ultimo_sticker_desbloqueado // Opcional si el frontend lo necesita
+            };
+            console.log("[Auth Controller] Sending user data to frontend:", userToSend);
+            // --- FIN MODIFICADO ---
 
-            // --- Log para verificar datos enviados --- 
-            console.log('[Auth Controller] User data being sent to frontend:', userToSend);
-            // --- Fin Log ---
-
-            // Respond with success, OUR JWT token, Aulify token, and local user data
-            res.status(200).json({
-                success: true,
-                message: 'Login successful',
-                token: ourJwtToken, // Send OUR JWT token
-                aulifyToken: aulifyToken, // Also send Aulify's token
-                user: userToSend // Local user data
-            });
-
+            res.json({ success: true, token: ourJwtToken, aulifyToken, user: userToSend });
+        
         } else {
             // Failed login via Aulify (e.g., 401, 400, 404)
             const errorMessage = aulifyResponse.data?.message || 'Aulify authentication failed';
@@ -297,7 +294,7 @@ export const loginUser = async (req, res, next) => {
         // Avoid leaking detailed error info unless necessary for debugging
         res.status(500).json({ success: false, message: 'An internal server error occurred during login.' });
         // next(error); // Optionally pass to an error handling middleware
-  }
+    }
 };
 
 // Add other auth-related functions here if needed (e.g., register, logout)

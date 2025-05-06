@@ -48,6 +48,11 @@ import {
 // Import CrosstenLight font
 import '../fonts/CrosstenLight.css';
 
+// --- Definir URL Base de la API --- 
+// Usar la URL de API Gateway
+const API_BASE_URL = 'https://ymqnqltlqg.execute-api.us-east-1.amazonaws.com'; 
+// -----------------------------------
+
 // --- Helper function to format time (HH:MM:SS for game results) ---
 // NOTE: Ensure the backend returns duracion_partida in total seconds
 // or adjust this function accordingly if it returns 'HH:MM:SS' format.
@@ -163,14 +168,13 @@ const Dashboard = () => {
   ];
 
   // --- Refactored Data Fetching Logic --- 
-  // useCallback ensures this function reference is stable unless dependencies change
   const fetchDashboardData = useCallback(async () => {
     const ourToken = localStorage.getItem('token'); // Read our JWT
     const aulifyApiToken = localStorage.getItem('aulifyToken'); // Read Aulify's token
     const currentUserId = userInfo?.id;
 
     // Exit if essential data is missing
-    if (!currentUserId || !ourToken) { // Check for our token now
+    if (!currentUserId || !ourToken) { 
         console.log("[fetchDashboardData] Skipping: Missing userId or our token.");
         // Ensure loading is off if we skip
         setLoadingRecent(false);
@@ -205,7 +209,6 @@ const Dashboard = () => {
     };
     
     // Headers for backend PROXY endpoints (Coins, Sticker)
-    // Include our JWT for auth AND Aulify token in custom header for proxy
     const headersProxyApi = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${ourToken}`, // Our JWT to authenticate with our backend
@@ -214,11 +217,13 @@ const Dashboard = () => {
 
     try {
       const results = await Promise.allSettled([
-          fetch(`Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/estadistica/ultimas-partidas`, { method: 'GET', headers: headersOurApi }), 
-          fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/estadistica/leaderboard', { method: 'GET', headers: headersOurApi }),
-          fetch(`Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/estadistica/tiempo-jugado`, { method: 'GET', headers: headersOurApi }), 
-          fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/aulify/coins', { method: 'GET', headers: headersProxyApi }), // Use proxy headers
-          fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/aulify/last-sticker', { method: 'GET', headers: headersProxyApi }) // Use proxy headers
+          // --- USAR API_BASE_URL --- 
+          fetch(`${API_BASE_URL}/estadistica/ultimas-partidas`, { method: 'GET', headers: headersOurApi }), 
+          fetch(`${API_BASE_URL}/estadistica/leaderboard`, { method: 'GET', headers: headersOurApi }),
+          fetch(`${API_BASE_URL}/estadistica/tiempo-jugado`, { method: 'GET', headers: headersOurApi }), 
+          fetch(`${API_BASE_URL}/aulify/coins`, { method: 'GET', headers: headersProxyApi }), // Use proxy headers
+          fetch(`${API_BASE_URL}/aulify/last-sticker`, { method: 'GET', headers: headersProxyApi }) // Use proxy headers
+          // -------------------------
       ]);
       console.log("[fetchDashboardData] All fetches completed.");
 
@@ -349,7 +354,9 @@ const Dashboard = () => {
       };
 
       try {
-          const response = await fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/estadistica/user-summary', { method: 'GET', headers: headers });
+          // --- USAR API_BASE_URL --- 
+          const response = await fetch(`${API_BASE_URL}/estadistica/user-summary`, { method: 'GET', headers: headers });
+          // -------------------------
           
           if (!response.ok) {
               const errorData = await response.json();
@@ -360,6 +367,24 @@ const Dashboard = () => {
           console.log("[fetchUserStats] Summary data received:", summaryData);
           setUserStatsSummary(summaryData);
           statsFetched.current = true; // Mark as fetched
+
+          // --- INICIO: Actualizar estado userInfo y localStorage ---
+          if (summaryData && summaryData.profile) {
+              console.log("[fetchUserStats] Updating userInfo state and localStorage with fresh profile data...");
+              // Combina los datos existentes con los nuevos datos del perfil
+              const updatedUserInfo = { 
+                  ...userInfo, // Mantiene otros campos como email, id, name si existen
+                  gamertag: summaryData.profile.gamertag, 
+                  nivel: summaryData.profile.nivel, 
+                  progreso: summaryData.profile.progreso 
+              };
+              setUserInfo(updatedUserInfo); // Actualiza el estado local
+              localStorage.setItem('userData', JSON.stringify(updatedUserInfo)); // Actualiza localStorage
+              console.log("[fetchUserStats] userInfo state and localStorage updated:", updatedUserInfo);
+          } else {
+              console.warn("[fetchUserStats] summaryData.profile not found in response, skipping userInfo update.");
+          }
+          // --- FIN: Actualizar estado userInfo y localStorage ---
 
       } catch (error) {
           console.error("[fetchUserStats] Error fetching stats summary:", error);
@@ -691,7 +716,9 @@ const Dashboard = () => {
 
             try {
                  console.log("[Focus Handler] Calling PUT /api/usuario/sync-coins...");
-                 const syncResponse = await fetch('Dragons-treasure-env.eba-xfkehrmn.us-east-1.elasticbeanstalk.com/api/usuario/sync-coins', {
+                 // --- USAR API_BASE_URL --- 
+                 const syncResponse = await fetch(`${API_BASE_URL}/api/usuario/sync-coins`, {
+                 // -------------------------
                      method: 'PUT',
                      headers: {
                         'Content-Type': 'application/json',
@@ -728,14 +755,17 @@ const Dashboard = () => {
   }, [fetchDashboardData, userInfo]);
   // --- End NEW Effect 4 ---
 
-  // --- NEW Effect 5: Fetch Stats Summary when Tab Changes ---
+  // --- NEW Effect 5: Fetch Stats Summary when Tab Changes --- 
   useEffect(() => {
-    if (activeTab === 'statistics' && userInfo && !statsFetched.current) {
+    // Siempre intentar obtener las estadísticas cuando la pestaña esté activa
+    // Se elimina la condición !statsFetched.current
+    if (activeTab === 'statistics' && userInfo) { 
       console.log("[Effect 5] Statistics tab active, fetching summary...");
       fetchUserStats();
     }
-    // Optionally reset statsFetched if user changes? Or keep it fetched for session.
-    // For now, it fetches only once per session when the tab is first clicked.
+    // Nota: Esto podría causar llamadas repetidas si el usuario clickea rápido,
+    // pero asegura que los datos estén (casi) siempre actualizados al ver la pestaña.
+    // Podríamos añadir un debouncing si se vuelve un problema.
   }, [activeTab, userInfo, fetchUserStats]);
   // --- End NEW Effect 5 ---
 
@@ -978,6 +1008,23 @@ const Dashboard = () => {
                     <span className="text-sm">Configuración</span>
                   </button>
                 </li>
+
+                {/* --- INICIO: Enlace Condicional Admin --- */}
+                {userInfo && userInfo.role === 'admin' && (
+                  <li>
+                    <button 
+                      onClick={() => navigate('/admin')} // Navegar a la ruta de admin
+                      className={`flex items-center w-full p-2 rounded-xl transition-all duration-200 text-sm ${darkMode ? 'hover:bg-purple-800/40 text-purple-400' : 'hover:bg-purple-100/60 text-purple-600'} hover:backdrop-blur-lg hover:border hover:border-purple-500/20`}
+                    >
+                      <span className="mr-3 w-6 h-6 flex items-center justify-center">
+                        {/* Usar un icono, ej. Sparkles */}
+                        <Sparkles className="w-4 h-4" /> 
+                      </span>
+                      <span>Admin Dashboard</span>
+                    </button>
+                  </li>
+                )}
+                {/* --- FIN: Enlace Condicional Admin --- */}
               </ul>
             </nav>
 
@@ -1143,8 +1190,8 @@ const Dashboard = () => {
                         {/* Level Badge */}
                         <div className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center ${darkMode ? 'bg-primary-yellow/20 border border-primary-yellow/50' : 'bg-blue-100 border border-blue-300'}`}>
                           <span className={`font-bold text-2xl ${darkMode ? 'text-primary-yellow' : 'text-blue-700'}`}>{userInfo.nivel}</span>
-                  </div>
-
+            </div>
+            
                         {/* Progress Bar and Text Container */}
                         <div className="flex-grow space-y-1">
                            <span className={`block text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Progreso al Nivel {userInfo.nivel + 1}</span>
@@ -1159,25 +1206,25 @@ const Dashboard = () => {
                                aria-valuemin="0"
                                aria-valuemax="100"
                              >
-              </div>
+                    </div>
                              {/* Progress Text Overlay */}
                              <div className="absolute inset-0 flex items-center justify-end pr-3">
                                 <span className={`text-[10px] font-bold ${userInfo.progreso > 50 ? 'text-gray-800' : (darkMode? 'text-gray-200' : 'text-gray-700') } mix-blend-difference`}>
                                    {userInfo.progreso} / 100 XP
                                 </span>
+                  </div>
+              </div>
             </div>
-                           </div>
-                        </div>
-                      </div>
+          </div>
                     ) : (
                        <p className="text-sm text-gray-500">Cargando información de nivel...</p>
                     )
                   }
-                </div>
+        </div>
                 {/* --- End Level & Progress Card --- */}
 
-                    </div>
-                  </div>
+      </div>
+    </div>
           )}
 
           {/* Placeholder for Statistics Tab Content */}

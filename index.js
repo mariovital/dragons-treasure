@@ -9,13 +9,15 @@ import { router as estadistica } from './routes/estadistica.js'
 import { router as aulifyRoutes } from './routes/aulify.js';
 import { verifyTokenPresence } from './middleware/verifyTokenPresence.js';
 import userRoutes from './routes/user.routes.js';
+import adminRoutes from './routes/admin.routes.js';
+import { verifyAdminRole } from './middleware/verifyAdminRole.js';
 
 const app = express()
 const PORT = process.env.PORT || 3000
 
 // --- CORS Configuration ---
 // Define allowed origins
-const allowedOrigins = ['http://localhost:5173']; // Add your frontend's origin
+const allowedOrigins = ['http://localhost:5173','https://dragons-treasure.vercel.app']; // Add your frontend's origin
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -84,8 +86,17 @@ app.post('/test-victory', (req, res) => {
 app.use('/aulifyLogin', authRouter);
 app.use('/estadistica', verifyTokenPresence, estadistica);
 app.use('/aulify', verifyTokenPresence, aulifyRoutes);
-app.use('/usuario', usuario);
+app.use('/usuario', verifyTokenPresence, usuario);
 app.use('/api', verifyTokenPresence, userRoutes);
+
+// --- Log justo antes de montar rutas admin ---
+app.use('/admin', (req, res, next) => {
+    console.log(`>>> Request received for /admin path: ${req.originalUrl}`)
+    next();
+});
+// -------------------------------------------
+
+app.use('/admin', verifyAdminRole, adminRoutes);
 
 // Ruta Prueba
 app.get('/', (req, res) => {

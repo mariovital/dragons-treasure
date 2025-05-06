@@ -55,6 +55,7 @@ const getUserSummary = async (req, res, next) => {
         const timeData = timeResults[0]; // SUM/AVG always return one row
 
         // --- Query 3: History (Last 15 games) ---
+        console.log(`[UserSummary History] Ejecutando query de historial para userId: ${userId}`);
         const [historyResults] = await connection.query(
             `SELECT 
                 fecha_hora, 
@@ -66,12 +67,16 @@ const getUserSummary = async (req, res, next) => {
              LIMIT 15`,
             [userId]
         );
+        console.log(`[UserSummary History] Resultados crudos de la BD:`, historyResults);
+        console.log(`[UserSummary History] Número de partidas encontradas: ${historyResults.length}`);
+
         // Format history data
         const gameHistory = historyResults.map(game => ({
             date: game.fecha_hora.toISOString().split('T')[0], // Format as YYYY-MM-DD
             time: formatSecondsToHMS(game.duration_seconds),
             outcome: game.idTipo === 1 ? 'victory' : 'defeat'
         }));
+        console.log(`[UserSummary History] Array gameHistory formateado:`, gameHistory);
 
         // --- Query 4: Wins/Losses per Day (Last 7 days) ---
         const [dailyResults] = await connection.query(
