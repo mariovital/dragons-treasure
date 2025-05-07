@@ -51,9 +51,25 @@ export const getAllUsers = async (req, res, next) => {
 
         // 2. Obtener los usuarios para la página actual
         const query = `
-            SELECT id, gamertag, email, role, nivel, progreso, total_victorias, total_derrotas, total_partidas 
-            FROM usuario 
-            ORDER BY id ASC 
+            SELECT 
+                u.id, 
+                u.gamertag, 
+                u.email, 
+                u.role, 
+                u.nivel, 
+                u.progreso, 
+                u.total_victorias, 
+                u.total_derrotas, 
+                u.total_partidas,
+                COALESCE(SUM(TIME_TO_SEC(e.duracion_partida)), 0) as total_segundos_jugados
+            FROM 
+                usuario u
+            LEFT JOIN 
+                estadistica e ON u.id = e.idUsuario AND e.idTipo IN (1, 2)
+            GROUP BY
+                u.id, u.gamertag, u.email, u.role, u.nivel, u.progreso, u.total_victorias, u.total_derrotas, u.total_partidas
+            ORDER BY 
+                u.id ASC 
             LIMIT ? 
             OFFSET ?;
         `;
