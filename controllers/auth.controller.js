@@ -2,6 +2,7 @@ import axios from 'axios';
 import jwt from 'jsonwebtoken';
 // import { findOrCreateUser } from './usuario.controller.js';
 import { pool } from '../helpers/mysql-config.js';
+import bcrypt from 'bcryptjs'; // Opcional: si manejarás contraseñas propias
 
 const AULIFY_LOGIN_URL = 'https://www.aulify.mx/aulifyLogin';
 const AULIFY_STICKER_URL = 'https://www.aulify.mx/getLastSticker';
@@ -294,6 +295,94 @@ export const loginUser = async (req, res, next) => {
         // Avoid leaking detailed error info unless necessary for debugging
         res.status(500).json({ success: false, message: 'An internal server error occurred during login.' });
         // next(error); // Optionally pass to an error handling middleware
+    }
+};
+
+// Controlador para establecer sesión después del login de Aulify
+export const establishSessionController = async (req, res, next) => {
+    const { email, aulifyUsername } = req.body; // aulifyUsername es opcional pero útil
+
+    if (!email) {
+        return res.status(400).json({ success: false, message: 'El email es requerido.' });
+    }
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        
+        // 1. Buscar usuario por email en tu base de datos
+        const [users] = await connection.query('SELECT id, email, gamertag, nivel, progreso FROM usuario WHERE email = ?', [email]);
+        let user;
+        let newUserData = null;
+
+        if (users.length > 0) {
+            user = users[0];
+            console.log(`[Auth Establish] Usuario encontrado en DB local: ${user.id} - ${user.email}`);
+        } else {
+            // 2. Si el usuario no existe, crearlo (ajusta según tu modelo de datos)
+            console.log(`[Auth Establish] Usuario con email ${email} no encontrado. Creando nuevo usuario...`);
+            
+            // Decisiones a tomar aquí:
+            // - ¿Gamertag default? ¿Se usa aulifyUsername?
+            // - ¿Password? Si Aulify es la fuente de verdad, quizás no necesites un password aquí.
+            //   O podrías generar uno aleatorio no usable, o pedir que se establezca luego.
+            // - ¿Nivel y progreso iniciales?
+            const defaultGamertag = aulifyUsername || email.split('@')[0]; // Ejemplo de gamertag
+            const defaultNivel = 1;
+            const defaultProgreso = 0;
+            // Si tienes una columna de password y es NOT NULL, necesitarás manejarla.
+            // Ejemplo simple: const placeholderPassword = await bcrypt.hash(Math.random().toString(36).slice(-8), 10);
+
+            const [insertResult] = await connection.query(
+                'INSERT INTO usuario (email, gamertag, nivel, progreso, total_victorias, total_derrotas, total_partidas, role) VALUES (?, ?, ?, ?, 0, 0, 0, \'user\')',
+                // Asegúrate que los campos coincidan con tu tabla `usuario`
+                [email, defaultGamertag, defaultNivel, defaultProgreso]
+            );
+
+            if (insertResult.insertId) {
+                user = { 
+                    id: insertResult.insertId, 
+                    email: email,
+                    gamertag: defaultGamertag,
+                    nivel: defaultNivel,
+                    progreso: defaultProgreso
+                };
+                newUserData = user; // Para indicar que se creó
+                console.log(`[Auth Establish] Nuevo usuario creado con ID: ${user.id}`);
+            } else {
+                throw new Error('No se pudo crear el usuario en la base de datos local.');
+            }
+        }
+
+        // 3. Generar tu propio token JWT
+        const payload = {
+            userId: user.id, // ID de tu tabla usuario
+            email: user.email
+        };
+        const yourAuthToken = jwt.sign(
+            payload, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '7d' } // Configura la expiración como necesites
+        );
+
+        console.log(`[Auth Establish] Token JWT propio generado para usuario ID: ${user.id}`);
+        
+        res.status(newUserData ? 201 : 200).json({
+            success: true,
+            message: newUserData ? 'Usuario creado y sesión establecida.' : 'Sesión establecida.',
+            token: yourAuthToken,
+            userId: user.id,
+            gamertag: user.gamertag,
+            nivel: user.nivel,
+            progreso: user.progreso,
+            // Puedes añadir cualquier otro dato del usuario que Unity necesite
+        });
+
+    } catch (error) {
+        console.error('[Auth Establish] Error estableciendo sesión:', error);
+        next(error); // Pasa al manejador de errores global
+    } finally {
+        if (connection) connection.release();
     }
 };
 
