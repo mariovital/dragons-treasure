@@ -4,9 +4,9 @@
 
 **Dragon's Treasure** es un proyecto de videojuego desarrollado con **Unity**. Este repositorio contiene el servicio backend en **Node.js/Express** y un **frontend de administración/dashboard** en **React/Vite**.
 
-El sistema ahora se integra con la plataforma **Aulify**, actuando como un **proxy** para la autenticación y ciertas operaciones (monedas, stickers), mientras maneja localmente las estadísticas específicas del juego (partidas, victorias, niveles, progreso).
+El sistema ahora se integra con la plataforma **Aulify**, actuando como un **proxy** para la autenticación y ciertas operaciones (monedas, stickers), mientras maneja localmente las estadísticas específicas del juego (partidas, victorias, niveles, progreso) y preferencias de usuario como el avatar.
 
-> Este proyecto fue desarrollado con fines educativos 📚 y de aprendizaje práctico sobre integración backend-frontend, manejo de APIs externas y autenticación JWT.
+> Este proyecto fue desarrollado con fines educativos 📚 y de aprendizaje práctico sobre integración backend-frontend, manejo de APIs externas, autenticación JWT y persistencia de datos de usuario.
 
 ---
 
@@ -15,24 +15,35 @@ El sistema ahora se integra con la plataforma **Aulify**, actuando como un **pro
 ### 🔧 API (Backend)
 
 -   **Autenticación Proxy:** Utiliza la API de Aulify para el login (`/aulifyLogin`), valida credenciales externamente.
--   **Autenticación Propia (JWT):** Genera un token JWT propio (`token`) para proteger las rutas del backend local, adicional al token opaco de Aulify (`aulifyToken`).
--   **Proxy API Aulify:** Endpoints seguros (`/aulify/*`) que reenvían solicitudes a la API de Aulify (`/getCoins`, `/getLastSticker`) usando el token de Aulify.
+-   **Autenticación Propia (JWT):** Genera un token JWT propio (`token`) para proteger las rutas del backend local.
+-   **Proxy API Aulify:** Endpoints seguros (`/aulify/*`) que reenvían solicitudes a la API de Aulify (`/getCoins`, `/getLastSticker`).
 -   **Gestión de Estadísticas Locales:**
     -   Seguimiento de historial de partidas individuales (`estadistica`).
     -   Contadores totales de victorias, derrotas y partidas en la tabla `usuario`.
     -   Sistema de niveles y progreso (XP) basado en victorias.
--   **Sincronización de Monedas:** Mantiene la columna `monedas` en la tabla `usuario` sincronizada con Aulify (actualiza en login y en `PUT /api/usuario/sync-coins`).
--   **Base de Datos:** Utiliza MySQL para almacenar datos de usuario y estadísticas del juego.
+-   **Sincronización de Monedas:** Mantiene la columna `monedas` en la tabla `usuario` sincronizada con Aulify.
+-   **Gestión de Preferencias de Usuario:**
+    -   Almacena y recupera el `avatar_sticker_id` preferido por el usuario.
+-   **Funcionalidades de Administrador:**
+    -   Endpoint para obtener un resumen de estadísticas de la plataforma.
+    -   Endpoint para listar todos los usuarios (paginado).
+    -   Endpoint para obtener estadísticas detalladas de un usuario específico.
+-   **Base de Datos:** Utiliza MySQL para almacenar datos de usuario, estadísticas del juego y preferencias.
 
-### 💎 Frontend (Dashboard)
+### 💎 Frontend (Dashboard & Admin Dashboard)
 
--   **Login:** Interactúa con el endpoint `/aulifyLogin` del backend, almacena ambos tokens (propio y de Aulify) en `localStorage`.
--   **Visualización de Datos:**
-    -   Muestra información del perfil (gamertag, nivel, progreso XP).
-    -   Presenta saldo de monedas y último sticker obtenido (llamando a los endpoints proxy `/aulify/*`).
-    -   Muestra historial de partidas recientes, leaderboard y gráfica de tiempo jugado (llamando a `/estadistica/*`).
-    -   Pestaña de "Estadísticas Detalladas" con resumen general, gráficas de winrate y actividad diaria (llamando a `/estadistica/user-summary`).
--   **Sincronización Automática:** Actualiza datos y sincroniza monedas locales con Aulify cuando la ventana recupera el foco.
+-   **Login:** Interactúa con el endpoint `/aulifyLogin`, almacena tokens y datos de usuario (incluyendo `avatar_sticker_id`).
+-   **Dashboard de Usuario:**
+    -   Visualización de datos del perfil (gamertag, nivel, progreso XP).
+    -   **Selección de Avatar:** Permite al usuario elegir un avatar de perfil entre los stickers desbloqueados, con persistencia en el backend.
+    -   Muestra saldo de monedas y último sticker obtenido (desde Aulify vía proxy).
+    -   Muestra historial de partidas recientes, leaderboard y gráfica de tiempo jugado.
+    -   Pestaña de "Estadísticas Detalladas" con resumen completo y gráficas.
+-   **Admin Dashboard (`/admin`):
+    -   Muestra un resumen de estadísticas de la plataforma (total usuarios, partidas, etc.).
+    -   Tabla paginada de todos los usuarios registrados.
+    -   **Modal de Detalles de Usuario:** Al hacer clic en un usuario, muestra sus estadísticas detalladas (perfil, rendimiento, gráficas, historial) de forma similar al dashboard de usuario.
+-   **Sincronización Automática:** Actualiza datos y sincroniza monedas al recuperar el foco.
 -   **Interfaz Moderna:** Estilo *glassmorphism*, modo claro/oscuro, responsiva.
 
 ---
@@ -56,7 +67,7 @@ cd dragons-treasure
 
 1.  Conéctate a tu servidor MySQL usando tu cliente de BD.
 2.  Crea una nueva base de datos (ej: `dragons_treasure_db`).
-3.  Ejecuta el script `DragonsTreasureDB.sql` contenido en este repositorio para crear las tablas (`usuario`, `estadistica`, etc.) con la estructura correcta.
+3.  Ejecuta el script `DragonsTreasureDB.sql` contenido en este repositorio. **Asegúrate que el script incluya la columna `avatar_sticker_id` (INTEGER, NULLABLE) en la tabla `usuario`.**
 
 ### 🔙 Backend (API)
 
@@ -72,12 +83,12 @@ cd dragons-treasure
     # Server Port
     PORT=3000
 
-    # Database Connection (Asegúrate que coincida con tu setup)
+    # Database Connection
     DB_HOST=localhost
     DB_USER=root
     DB_PASSWORD=tu_contraseña_de_mysql
     DB_PORT=3306
-    DB_NAME=dragons_treasure_db # El nombre que usaste al crear la BD
+    DB_NAME=dragons_treasure_db
 
     # API Keys & Secrets
     AULIFY_API_KEY=tu_api_key_de_aulify # ¡Obligatoria para login y proxy!
@@ -121,52 +132,54 @@ cd dragons-treasure
 
 ## 🔌 Endpoints Principales de la API (Backend Local)
 
-**Prefijo Base:** `http://localhost:3000` (o el puerto que definas)
+**Prefijo Base:** `http://localhost:3000` (o la URL de despliegue, ej: `https://ymqnqltlqg.execute-api.us-east-1.amazonaws.com`)
 
 **Autenticación:**
 
 -   `POST /aulifyLogin`
-    -   **Descripción:** Autentica al usuario contra la API de Aulify.
+    -   **Descripción:** Autentica al usuario contra Aulify, crea/actualiza el usuario local y devuelve tokens.
     -   **Body:** `{ "email": "user@example.com", "password": "1234" }`
-    -   **Respuesta Exitosa (200 OK):** `{ "success": true, "message": "Login successful", "token": "nuestro_jwt", "aulifyToken": "token_de_aulify", "user": { ...datos del usuario local incluyendo monedas... } }`
-    -   **Respuesta Error (401, 400, etc.):** `{ "success": false, "message": "Mensaje de error" }`
+    -   **Headers (Request):** `X-Api-Key: <tu_api_key_de_aulify>`
+    -   **Respuesta Exitosa (200 OK):** `{ "success": true, ..., "user": { ..., "avatar_sticker_id": ID_o_null } }`
 
 **Rutas Protegidas (Requieren `Authorization: Bearer <nuestro_jwt>`)**
 
 ### Estadísticas (`/estadistica`)
 
 -   `POST /record-game`
-    -   **Descripción:** Registra el resultado de una partida (victoria o derrota).
+    -   **Descripción:** Registra el resultado de una partida.
     -   **Body:** `{ "outcome": "victory" | "defeat", "durationSeconds": 125 }`
-    -   **Respuesta (200 OK):** `{ "message": "Partida registrada...", ...datos actualizados nivel/progreso... }`
 -   `GET /ultimas-partidas`
-    -   **Descripción:** Devuelve las últimas 5 partidas del usuario.
 -   `GET /leaderboard`
-    -   **Descripción:** Devuelve el Top 5 de usuarios por victorias.
 -   `GET /tiempo-jugado`
-    -   **Descripción:** Devuelve el tiempo total jugado por día en los últimos 7 días.
 -   `GET /user-summary`
-    -   **Descripción:** Devuelve un resumen completo de estadísticas del usuario para la pestaña "Estadísticas Detalladas".
 
 ### Proxy Aulify (`/aulify`)
 
-*(Requieren también `X-Aulify-Token: <token_de_aulify>` en los headers)*
+*(Requieren también `X-Aulify-Token: <token_de_aulify>` en los headers de la solicitud a nuestro backend)*
 
 -   `GET /coins`
-    -   **Descripción:** Obtiene el saldo actual de monedas desde Aulify.
-    -   **Respuesta:** `{ "coins": 123 }`
 -   `GET /last-sticker`
-    -   **Descripción:** Obtiene el último sticker desbloqueado desde Aulify.
-    -   **Respuesta:** `{ "sticker": { ...datos del sticker... } }` o `{ "sticker": null }` si no hay.
 
 ### Usuario (`/api`)
 
-*(Requieren `Authorization: Bearer <nuestro_jwt>`)*
-*(Requieren también `X-Aulify-Token: <token_de_aulify>` en los headers)*
-
 -   `PUT /usuario/sync-coins`
-    -   **Descripción:** Fuerza la sincronización del saldo de monedas local con el de Aulify.
-    -   **Respuesta (200 OK):** `{ "message": "Monedas sincronizadas...", "coins": 123 }`
+    -   **Descripción:** Sincroniza monedas con Aulify. *(Requiere `X-Aulify-Token`)*
+-   `PUT /avatar`
+    -   **Descripción:** Actualiza la preferencia de avatar del usuario.
+    -   **Body:** `{ "stickerId": ID_DEL_STICKER_O_NULL }`
+    -   **Respuesta (200 OK):** `{ "success": true, "message": "Preferencia actualizada", "newStickerId": ID_o_null }`
+
+### Administrador (`/admin`)
+
+*(Requieren que el JWT del usuario tenga rol de 'admin')*
+
+-   `GET /stats/summary`
+    -   **Descripción:** Obtiene un resumen de estadísticas de la plataforma.
+-   `GET /users`
+    -   **Descripción:** Lista todos los usuarios (paginado, ej. `/users?page=1&limit=10`).
+-   `GET /user-stats/:userId`
+    -   **Descripción:** Obtiene estadísticas detalladas para un usuario específico.
 
 ---
 
@@ -175,26 +188,27 @@ cd dragons-treasure
 El backend se organiza modularmente:
 
 -   📁 **routes:** Definición de endpoints y asociación con controladores/middleware.
--   🧠 **controllers:** Lógica de negocio, interacción con la base de datos y llamadas a APIs externas (Aulify) usando `axios`.
--   🛡️ **middleware:** Autenticación (verificación de JWT propio con `jsonwebtoken`), logging.
--   🔧 **helpers:** Configuración y gestión de la conexión a MySQL (`mysql2`).
+-   🧠 **controllers:** Lógica de negocio, interacción con la base de datos y llamadas a APIs externas.
+-   🛡️ **middleware:** Autenticación (verificación de JWT, verificación de rol de admin).
+-   🔧 **helpers:** Configuración y gestión de la conexión a MySQL.
 
 ---
 
 ## 🔄 Integración
 
--   🕹️ **Cliente de juego Unity:** Puede consumir los endpoints del backend local para registrar partidas (`/estadistica/record-game`) y potencialmente obtener datos del usuario.
--   🔗 **API Externa (Aulify):** El backend actúa como intermediario para autenticación y obtención de datos específicos (monedas, stickers).
--   🖼️ **Frontend (Dashboard):** Interactúa exclusivamente con el backend local.
+-   🕹️ **Cliente de juego Unity:** Consume `/aulifyLogin` y `/estadistica/record-game`. (Ver `docs/Unity_Backend_Integration.md`).
+-   🔗 **API Externa (Aulify):** El backend actúa como intermediario.
+-   🖼️ **Frontend (Dashboard React):** Interactúa con todos los endpoints relevantes del backend local.
 
 ---
 
 ## 🛡️ Seguridad
 
--   ✅ **Autenticación JWT:** Rutas sensibles protegidas por un token JWT propio generado por el backend.
--   🔒 **Tokens Separados:** Manejo diferenciado del token JWT propio y el token opaco de Aulify.
--   🔐 **Variables de Entorno:** Datos sensibles (claves API, secretos JWT, credenciales DB) gestionados mediante variables de entorno (`dotenv`).
--   🛡️ **CORS:** Configuración para permitir solicitudes solo desde el origen del frontend especificado.
+-   ✅ **Autenticación JWT:** Rutas sensibles protegidas.
+-   🔒 **Tokens Separados:** Manejo diferenciado del token JWT propio y el de Aulify.
+-   🔑 **Roles de Usuario:** Middleware para restringir acceso a rutas de administrador.
+-   🔐 **Variables de Entorno:** Gestión de datos sensibles.
+-   🛡️ **CORS:** Configuración para permitir solicitudes desde orígenes especificados.
 
 ---
 
@@ -202,38 +216,30 @@ El backend se organiza modularmente:
 
 ```
 / (Raíz del Proyecto)
-│── controllers/         # Lógica principal (auth, estadistica, usuario)
-│── middleware/          # Middlewares (verifyTokenPresence)
-│── routes/              # Definición de rutas (auth, estadistica, usuario, aulify)
-│── helpers/             # Conexión DB (mysql-config)
-│── Backend/             # Contiene controladores/rutas específicos del proxy Aulify
-│   ├── controllers/
-│   │   └── aulify.controller.js
-│   └── middleware/      # (Podría estar vacío ahora si todo se movió)
-│       └── verifyTokenPresence.js # (Duplicado? Verificar si se usa este o el de la raíz)
+│── controllers/         # auth.controller.js, estadistica.controller.js, usuario.controller.js, admin.controller.js
+│── middleware/          # verifyTokenPresence.js, verifyAdminRole.js
+│── routes/              # auth.routes.js, estadistica.routes.js, usuario.routes.js, aulify.routes.js, admin.routes.js
+│── helpers/             # mysql-config.js
 │── Front/               # Código fuente del Dashboard React
 │   └── dragons-treasure/
 │       ├── public/
 │       └── src/
 │           ├── components/
-│           ├── pages/       # Dashboard.jsx, Login.jsx
-│           ├── contexts/    # ThemeContext
+│           ├── pages/       # Dashboard.jsx, Login.jsx, AdminDashboard.jsx
+│           ├── contexts/
 │           ├── assets/
 │           └── ...
-│── docs/                # Documentación adicional
-│── node_modules/
-│── .env                 # Variables de entorno (¡NO SUBIR A GIT!)
+│── docs/                # Documentación (Unity_Backend_Integration.md)
+│── .env                 # Variables de entorno
 │── .gitignore
-│── DragonsTreasureDB.sql # Script SQL para crear la BD
+│── DragonsTreasureDB.sql # Script SQL (¡Debe estar actualizado!)
 │── index.js             # Punto de entrada del servidor Backend
 │── package.json
 │── package-lock.json
 └── README.md            # Este archivo
 ```
 
-*Nota: La estructura puede variar ligeramente. Revisa la sección sobre `Backend/` vs. las carpetas raíz.* 
-
----
+--- 
 
 ## 📌 Nota
 
