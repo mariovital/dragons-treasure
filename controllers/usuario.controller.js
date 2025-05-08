@@ -191,7 +191,7 @@ const updateAvatarPreference = async (req, res, next) => {
         console.error(`[DB ERROR updateAvatarPreference] Database error for userId: ${userId}, stickerIdToSave: ${stickerIdToSave}:`, error);
         next(error); // Pasar al manejador de errores global
     }
-};
+}
 // --- FIN NUEVA FUNCIÓN ---
 
 // Export existing functions AND the new one
