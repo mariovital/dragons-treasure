@@ -181,6 +181,21 @@ cd dragons-treasure
 -   `GET /user-stats/:userId`
     -   **Descripción:** Obtiene estadísticas detalladas para un usuario específico.
 
+### 🎮 Endpoints para Cliente Unity
+
+El cliente de juego desarrollado en Unity interactúa principalmente con los siguientes dos endpoints del backend para la autenticación y el registro de partidas:
+
+1.  `POST /aulifyLogin`
+    *   **Propósito:** Login del jugador y obtención del token JWT específico de Dragons Treasure.
+    *   **Referencia Detallada:** Ver el documento [`docs/Unity_Backend_Integration.md`](./docs/Unity_Backend_Integration.md) para formatos completos de solicitud/respuesta y manejo de errores.
+
+2.  `POST /estadistica/record-game`
+    *   **Propósito:** Registrar el resultado (victoria/derrota) y la duración de una partida.
+    *   **Headers (Request):** Requiere el token JWT de Dragons Treasure (`Authorization: Bearer <nuestro_jwt>`).
+    *   **Referencia Detallada:** Ver el documento [`docs/Unity_Backend_Integration.md`](./docs/Unity_Backend_Integration.md) para formatos completos de solicitud/respuesta y manejo de errores.
+
+Para una guía exhaustiva sobre la implementación de estos endpoints en Unity, consulta: [`docs/Unity_Backend_Integration.md`](./docs/Unity_Backend_Integration.md).
+
 ---
 
 ## 🏗️ Arquitectura
