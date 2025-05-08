@@ -183,18 +183,92 @@ cd dragons-treasure
 
 ### 🎮 Endpoints para Cliente Unity
 
-El cliente de juego desarrollado en Unity interactúa principalmente con los siguientes dos endpoints del backend para la autenticación y el registro de partidas:
+El cliente de juego desarrollado en Unity interactúa principalmente con los siguientes dos endpoints del backend para la autenticación y el registro de partidas. A continuación, se detalla la configuración esperada para cada uno:
 
-1.  `POST /aulifyLogin`
-    *   **Propósito:** Login del jugador y obtención del token JWT específico de Dragons Treasure.
-    *   **Referencia Detallada:** Ver el documento [`docs/Unity_Backend_Integration.md`](./docs/Unity_Backend_Integration.md) para formatos completos de solicitud/respuesta y manejo de errores.
+#### 1. Autenticación del Jugador
 
-2.  `POST /estadistica/record-game`
-    *   **Propósito:** Registrar el resultado (victoria/derrota) y la duración de una partida.
-    *   **Headers (Request):** Requiere el token JWT de Dragons Treasure (`Authorization: Bearer <nuestro_jwt>`).
-    *   **Referencia Detallada:** Ver el documento [`docs/Unity_Backend_Integration.md`](./docs/Unity_Backend_Integration.md) para formatos completos de solicitud/respuesta y manejo de errores.
+*   **Endpoint:** `POST [Prefijo_Base]/aulifyLogin`
+    *   Reemplazar `[Prefijo_Base]` con la URL de tu backend (ej. `http://localhost:3000` o la URL de producción).
+*   **Propósito:**
+    1.  Autenticar las credenciales del jugador (`email`, `password`) contra la API de Aulify.
+    2.  Si la autenticación con Aulify es exitosa, el backend crea o actualiza el registro del usuario en la base de datos local.
+    3.  Generar y devolver un token JWT específico de Dragon's Treasure (`backendToken`) que Unity deberá usar para las solicitudes subsecuentes a las rutas protegidas del juego (como registrar partidas).
+    4.  Devolver también el `aulifyToken` para que el backend pueda hacer llamadas proxy a Aulify si fuera necesario en nombre del usuario (aunque esto es menos común directamente desde Unity para los endpoints que usa).
+*   **Headers Requeridos (desde Unity):**
+    *   `X-Api-Key`: `tu_api_key_de_aulify` (La misma API key que usa el backend para comunicarse con Aulify).
+    *   `Content-Type`: `application/json`
+*   **Body (JSON desde Unity):**
+    ```json
+    {
+      "email": "correo_del_usuario@ejemplo.com",
+      "password": "la_contraseña_del_usuario"
+    }
+    ```
+*   **Respuesta Exitosa Clave (desde el Backend a Unity):**
+    Un objeto JSON que incluye:
+    *   `success: true`
+    *   `token`: El JWT del backend de Dragon's Treasure (este es el que Unity debe almacenar y usar para `record-game`).
+    *   `aulifyToken`: El token de Aulify.
+    *   `user`: Un objeto con información del usuario, incluyendo `id`, `gamertag`, `nivel`, `progreso`, `avatar_sticker_id`, etc.
 
-Para una guía exhaustiva sobre la implementación de estos endpoints en Unity, consulta: [`docs/Unity_Backend_Integration.md`](./docs/Unity_Backend_Integration.md).
+#### 2. Registro de Resultado de Partida
+
+*   **Endpoint:** `POST [Prefijo_Base]/estadistica/record-game`
+    *   Reemplazar `[Prefijo_Base]` con la URL de tu backend.
+*   **Propósito:**
+    1.  Registrar el resultado (victoria o derrota) y la duración de una partida jugada en Unity.
+    2.  El backend actualizará las estadísticas del jugador (total de victorias/derrotas, partidas jugadas) y su progreso de nivel.
+*   **Headers Requeridos (desde Unity):**
+    *   `Authorization`: `Bearer <tu_token_jwt_obtenido_del_login>` (El `token` recibido del endpoint `/aulifyLogin`).
+    *   `Content-Type`: `application/json`
+*   **Body (JSON desde Unity):**
+    ```json
+    {
+      "outcome": "victory", // o "defeat"
+      "durationSeconds": 125 // Duración de la partida en segundos (número entero)
+    }
+    ```
+*   **Respuesta Exitosa Clave (desde el Backend a Unity):**
+    Un objeto JSON que incluye:
+    *   `success: true`
+    *   `message`: "Partida registrada y progreso actualizado."
+    *   `levelInfo`: Objeto con `nivel` y `progreso` actualizados del jugador.
+
+#### Diagnóstico de Problemas (Troubleshooting) desde Unity
+
+Si los datos de Unity no parecen llegar correctamente a la base de datos, considera los siguientes puntos de revisión en tu cliente de Unity y en la configuración del backend:
+
+1.  **URL del Endpoint en Unity:**
+    *   Verifica que Unity esté apuntando exactamente a la URL correcta del backend desplegado (ej. `https://tu-api.com/aulifyLogin`) o de desarrollo (`http://localhost:3000/aulifyLogin`). Un error común es una `/` extra o faltante, o un error tipográfico.
+
+2.  **Headers de la Solicitud desde Unity:**
+    *   **`POST /aulifyLogin`**:
+        *   Asegúrate de que el header `X-Api-Key` se esté enviando con el valor correcto de tu Aulify API Key.
+        *   Asegúrate de que el header `Content-Type` esté configurado como `application/json`.
+    *   **`POST /estadistica/record-game`**:
+        *   Asegúrate de que el header `Authorization` se esté enviando con el formato `Bearer <JWT_TOKEN>`, donde `<JWT_TOKEN>` es el token (`token`) obtenido de la respuesta del login.
+        *   Verifica que el token JWT no haya expirado y sea válido.
+        *   Asegúrate de que el header `Content-Type` esté configurado como `application/json`.
+
+3.  **Formato y Contenido del Body JSON (desde Unity):**
+    *   Confirma que el cuerpo de la solicitud POST esté correctamente formateado como JSON.
+    *   Verifica que los nombres de los campos (claves) en el JSON coincidan exactamente con lo que espera el backend (ej. `email`, `password`, `outcome`, `durationSeconds`).
+    *   Asegúrate de que los tipos de datos sean los correctos (ej. `durationSeconds` debe ser un número).
+
+4.  **Manejo de Errores y Logs en Unity:**
+    *   Implementa un manejo robusto de errores en el código C# de Unity que realiza las llamadas HTTP.
+    *   Revisa la consola de Unity para cualquier mensaje de error relacionado con las solicitudes de red (ej. errores de conexión, timeouts, códigos de estado HTTP como 400, 401, 403, 404, 500).
+    *   Loguea la respuesta completa del servidor en la consola de Unity para entender qué está devolviendo el backend.
+
+5.  **Logs del Servidor Backend:**
+    *   Revisa los logs de tu servidor backend (Node.js/Express). Si las solicitudes llegan, los logs deberían mostrar el `req.body` y `req.headers` recibidos. Esto es crucial para ver si la información que envía Unity es la que el backend espera.
+    *   Presta atención a cualquier error que el backend pueda estar registrando durante el procesamiento de la solicitud. (Revisa la sección "Análisis de los Controladores" en la conversación anterior para ver ejemplos de logs útiles).
+
+6.  **Configuración de Red/CORS (para backend desplegado):**
+    *   Si tu backend está desplegado (ej. en AWS Elastic Beanstalk, Vercel, etc.), asegúrate de que la configuración de CORS permita solicitudes del "origen" desde donde Unity podría estar haciendo las llamadas (aunque Unity no es un navegador, algunos gateways/proxies pueden imponer estas reglas).
+    *   Verifica que no haya firewalls o configuraciones de red bloqueando las peticiones.
+
+Para una guía más exhaustiva sobre la implementación de estos endpoints en Unity, incluyendo ejemplos de código C# y manejo de errores más detallado, puedes consultar el archivo `docs/Unity_Backend_Integration.md` si decides crearlo o expandirlo con esa información.
 
 ---
 
