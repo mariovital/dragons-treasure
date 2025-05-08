@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
-// Import your images with lowercase folder name
-import blueCircleImg from '../assets/images/blue_circle.png';
-import blueWaveImg from '../assets/images/blue_line.png';
-import yellowDotsImg from '../assets/images/yellow_dots.png';
-import yellowWaveImg from '../assets/images/yellow_line.png';
-import aulifyLogo from '../assets/images/Aulify_Logo.png';
-import aulifyLogoWhite from '../assets/images/Aulify_Logo_White.png';
+// Import your images with corrected folder name
+import blueCircleImg from '../assets/images 2/blue_circle.png';
+import blueWaveImg from '../assets/images 2/blue_line.png';
+import yellowDotsImg from '../assets/images 2/yellow_dots.png';
+import yellowWaveImg from '../assets/images 2/yellow_line.png';
+import aulifyLogo from '../assets/images 2/Aulify_Logo.png';
+import aulifyLogoWhite from '../assets/images 2/Aulify_Logo_White.png';
 
 // Import ParticlesBackground
 import ParticlesBackground from '../components/ParticlesBackground';

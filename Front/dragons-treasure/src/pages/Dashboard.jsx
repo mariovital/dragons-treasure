@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Coins, Sparkles } from 'lucide-react';
 
 // Import decorative assets for additional elements
-import blueCircleImg from '../assets/images/blue_circle.png';
-import blueWaveImg from '../assets/images/blue_line.png';
-import yellowDotsImg from '../assets/images/yellow_dots.png';
-import yellowWaveImg from '../assets/images/yellow_line.png';
+import blueCircleImg from '../assets/images 2/blue_circle.png';
+import blueWaveImg from '../assets/images 2/blue_line.png';
+import yellowDotsImg from '../assets/images 2/yellow_dots.png';
+import yellowWaveImg from '../assets/images 2/yellow_line.png';
 
 // Import all 11 Elementos_Aulify assets
 import elemento1 from '../assets/Elementos_Aulify/elemento1.png';  // elemento07
@@ -23,18 +23,18 @@ import elemento10 from '../assets/Elementos_Aulify/elemento10.png'; // elemento4
 import elemento11 from '../assets/Elementos_Aulify/elemento11.png'; // elemento45
 
 // Import logo and navigation icons
-import aulifyLogo from '../assets/images/Aulify_Logo.png';
-import aulifyLogoWhite from '../assets/images/Aulify_Logo_White.png';
-import dashboardIcon from '../assets/images/Dashboard_Logo.png';
-import dashboardIconLight from '../assets/images/Dashboard_Light.png';
-import estadisticasIcon from '../assets/images/Estadisticas_Logo.png';
-import estadisticasIconLight from '../assets/images/Estadisticas_Light.png';
-import configuracionIcon from '../assets/images/Configuracion_Logo.png';
-import configuracionIconLight from '../assets/images/Configuracion_Light.png';
-import darkModeIcon from '../assets/images/DarkMode_Logo.png';
-import lightModeIcon from '../assets/images/Light_Mode.png';
-import salirIcon from '../assets/images/Salir_Logo.png';
-import salirIconLight from '../assets/images/Salir_Light.png';
+import aulifyLogo from '../assets/images 2/Aulify_Logo.png';
+import aulifyLogoWhite from '../assets/images 2/Aulify_Logo_White.png';
+import dashboardIcon from '../assets/images 2/Dashboard_Logo.png';
+import dashboardIconLight from '../assets/images 2/Dashboard_Light.png';
+import estadisticasIcon from '../assets/images 2/Estadisticas_Logo.png';
+import estadisticasIconLight from '../assets/images 2/Estadisticas_Light.png';
+import configuracionIcon from '../assets/images 2/Configuracion_Logo.png';
+import configuracionIconLight from '../assets/images 2/Configuracion_Light.png';
+import darkModeIcon from '../assets/images 2/DarkMode_Logo.png';
+import lightModeIcon from '../assets/images 2/Light_Mode.png';
+import salirIcon from '../assets/images 2/Salir_Logo.png';
+import salirIconLight from '../assets/images 2/Salir_Light.png';
 
 // Import ParticlesBackground component
 import ParticlesBackground from '../components/ParticlesBackground';
