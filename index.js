@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3000
 
 // --- CORS Configuration ---
 // Define allowed origins
-const allowedOrigins = ['*']; // Add your frontend's origin
+const allowedOrigins = ['http://localhost:5173', 'https://staging.dyjs76ge1s6pf.amplifyapp.com']; // Add your frontend's origin
 
 const corsOptions = {
   origin: function (origin, callback) {
