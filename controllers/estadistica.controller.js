@@ -95,11 +95,32 @@ const getUserSummary = async (req, res, next) => {
             [userId]
         );
          // Format daily data for chart
-        const dailyChartData = dailyResults.map(day => ({
-            day: new Date(day.dia + 'T00:00:00Z').toLocaleDateString('es-ES', { weekday: 'short' }),
-            victorias: day.victorias_dia,
-            derrotas: day.derrotas_dia
-        }));
+        const dailyChartData = dailyResults.map(item => {
+            let dayLabel = 'Err'; // Default label
+            const dateObj = item.dia; // Directly use the value from the DB
+            console.log(`[UserSummary Date Final] Processing raw 'dia' value:`, dateObj, `(Type: ${typeof dateObj})`); // LOG RAW VALUE
+
+            // Check if it's a valid Date object
+            if (dateObj instanceof Date && !isNaN(dateObj.getTime())) { 
+                console.log(`[UserSummary Date Final] Valid Date object received.`); // LOG VALID
+                try {
+                    dayLabel = dateObj.toLocaleDateString('es-ES', { weekday: 'short' });
+                    console.log(`[UserSummary Date Final] Successfully formatted. Label: ${dayLabel}`); // LOG SUCCESS
+                } catch (e) {
+                    console.error(`[UserSummary Date Final] Error during toLocaleDateString() for date: ${dateObj}`, e); // LOG FORMATTING ERROR
+                    dayLabel = 'FmtErr'; // Indicate formatting error specifically
+                }
+            } else {
+                // Log if it's null, undefined, or an invalid Date object
+                console.warn(`[UserSummary Date Final] Invalid or missing Date object received for 'dia'. Value:`, dateObj);
+            }
+            
+            return {
+                day: dayLabel,
+                victorias: parseInt(item.victorias_dia, 10) || 0,
+                derrotas: parseInt(item.derrotas_dia, 10) || 0
+            };
+        });
 
         // --- Calculate Win Rate ---
         const winRate = userData.total_partidas > 0 
