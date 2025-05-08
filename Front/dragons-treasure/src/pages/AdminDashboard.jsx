@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
-import { Users, BarChart3, Trophy, Skull, ArrowLeft } from 'lucide-react';
+import { Users, BarChart3, Trophy, Skull, ArrowLeft, XCircle } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // Import ParticlesBackground component
 import ParticlesBackground from '../components/ParticlesBackground';
@@ -55,6 +56,13 @@ const AdminDashboard = () => {
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalUsers: 0, limit: 10 });
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [errorUsers, setErrorUsers] = useState(null);
+
+  // --- NUEVOS ESTADOS PARA DETALLES DE USUARIO ---
+  const [selectedUser, setSelectedUser] = useState(null); // Almacenará el objeto del usuario seleccionado
+  const [userDetailData, setUserDetailData] = useState(null);
+  const [loadingUserDetails, setLoadingUserDetails] = useState(false);
+  const [errorUserDetails, setErrorUserDetails] = useState(null);
+  // --- FIN NUEVOS ESTADOS ---
 
   // --- Función para obtener el resumen de la plataforma ---
   const fetchSummary = useCallback(async () => {
@@ -124,6 +132,62 @@ const AdminDashboard = () => {
       setLoadingUsers(false);
     }
   }, [navigate]);
+
+  // --- NUEVA FUNCIÓN PARA OBTENER DETALLES DEL USUARIO ---
+  const fetchUserDetails = useCallback(async (userId) => {
+    if (!userId) return;
+    setLoadingUserDetails(true);
+    setErrorUserDetails(null);
+    setUserDetailData(null); // Limpiar datos previos
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setErrorUserDetails('No autenticado');
+      setLoadingUserDetails(false);
+      navigate('/login');
+      return;
+    }
+
+    try {
+      console.log(`[Admin] Fetching details for user ID: ${userId}`);
+      const response = await fetch(`${API_BASE_URL}/admin/user-stats/${userId}`, { // <-- LLAMADA REAL AL BACKEND
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+            navigate('/dashboard'); // O a /login si es un 401 general
+            throw new Error('Acceso denegado o no autorizado.');
+        }
+        const errorData = await response.json().catch(() => ({ message: response.statusText })); // Intenta parsear JSON, sino usa statusText
+        throw new Error(errorData.message || `Error ${response.status}`);
+      }
+      
+      const data = await response.json();
+      if (data.success && data.summary) { // Asumiendo que el backend devuelve { success: true, summary: { ... } }
+        setUserDetailData(data.summary);
+      } else {
+        throw new Error(data.message || 'Error al cargar detalles del usuario: Formato de respuesta inesperado.');
+      }
+
+    } catch (err) {
+      console.error("[Admin] Error fetching user details:", err);
+      setErrorUserDetails(err.message);
+    } finally {
+      setLoadingUserDetails(false);
+    }
+  }, [navigate]); 
+  // --- FIN NUEVA FUNCIÓN ---
+
+  const handleUserRowClick = (user) => {
+    setSelectedUser(user);
+    fetchUserDetails(user.id);
+  };
+
+  const closeModal = () => {
+    setSelectedUser(null);
+    setUserDetailData(null);
+    setErrorUserDetails(null);
+  };
 
   // --- Efecto para cargar datos iniciales ---
   useEffect(() => {
@@ -250,7 +314,10 @@ const AdminDashboard = () => {
 
           {/* Sección Lista de Usuarios */}
           <section>
-            <h2 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>Lista de Usuarios</h2>
+            <div className="flex items-baseline justify-between mb-4">
+                <h2 className={`text-lg font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>Lista de Usuarios</h2>
+                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} italic`}>Haz clic en un usuario para ver sus estadísticas detalladas.</p>
+            </div>
             
             {/* Contenedor de la Tabla con estilo de tarjeta */}
             <div className={`p-0 sm:p-2 md:p-4 rounded-2xl overflow-x-auto ${darkMode ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 shadow-lg' : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30 shadow-lg'}`}>
@@ -274,7 +341,11 @@ const AdminDashboard = () => {
                   <tbody className={`${darkMode ? 'divide-y divide-gray-700/30' : 'divide-y divide-gray-200/30'}`}>
                     {usersData.length > 0 ? (
                       usersData.map((user) => (
-                        <tr key={user.id} className={`${darkMode ? 'hover:bg-black/20' : 'hover:bg-white/20'} transition-colors duration-150`}>
+                        <tr 
+                          key={user.id} 
+                          className={`${darkMode ? 'hover:bg-black/30' : 'hover:bg-white/40'} transition-colors duration-150 cursor-pointer`}
+                          onClick={() => handleUserRowClick(user)}
+                        >
                           <td className="px-4 py-3 text-xs whitespace-nowrap">{user.id}</td>
                           <td className={`px-4 py-3 text-xs whitespace-nowrap font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{user.gamertag}</td>
                           <td className={`px-4 py-3 text-xs whitespace-nowrap ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{user.email}</td>
@@ -328,6 +399,167 @@ const AdminDashboard = () => {
           </section>
         </div>
       </div>
+
+      {/* --- MODAL PARA DETALLES DE USUARIO --- */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-md">
+          <div 
+            className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 rounded-2xl ${
+              darkMode 
+                ? 'bg-[#1a1a1a]/80 border border-gray-700/50 shadow-xl' 
+                : 'bg-[#f0f0f0]/80 border border-white/30 shadow-xl'
+            } backdrop-blur-xl`}
+          >
+            <button 
+              onClick={closeModal}
+              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-300'}`}
+            >
+              <XCircle size={24} />
+            </button>
+
+            <h2 className={`text-xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              Estadísticas de: {selectedUser.gamertag}
+            </h2>
+
+            {loadingUserDetails && <p className="text-center py-10 text-gray-500">Cargando detalles del usuario...</p>}
+            {errorUserDetails && <p className="text-center py-10 text-red-500">Error: {errorUserDetails}</p>}
+            
+            {userDetailData && !loadingUserDetails && !errorUserDetails && (
+              <div className="space-y-6">
+                {/* Sección Resumen del Perfil (como en Dashboard.jsx) */}
+                <section>
+                  <h3 className="text-lg font-semibold mb-3">Resumen del Perfil</h3>
+                  <div className={`p-4 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'} flex items-center space-x-4`}>
+                    <div className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center ${darkMode ? 'bg-primary-yellow/20 border border-primary-yellow/50' : 'bg-blue-100 border border-blue-300'}`}>
+                        <span className={`font-bold text-2xl ${darkMode ? 'text-primary-yellow' : 'text-blue-700'}`}>{userDetailData.profile.nivel}</span>
+                    </div>
+                    <div className="flex-grow">
+                        <p className="font-bold text-xl">{userDetailData.profile.gamertag}</p>
+                        <span className={`block text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Progreso al Nivel {userDetailData.profile.nivel + 1}</span>
+                        <div className="relative w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700 overflow-hidden">
+                            <div 
+                                className="absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-yellow-400 to-primary-yellow dark:from-yellow-500 dark:to-yellow-400 shadow-inner"
+                                style={{ width: `${userDetailData.profile.progreso}%` }}
+                            ></div>
+                            <div className="absolute inset-0 flex items-center justify-end pr-3">
+                                <span className={`text-[10px] font-bold ${userDetailData.profile.progreso > 50 ? 'text-gray-800' : (darkMode? 'text-gray-200' : 'text-gray-700') } mix-blend-difference`}>
+                                    {userDetailData.profile.progreso} / 100 XP
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Sección Rendimiento General (como en Dashboard.jsx) */}
+                <section>
+                  <h3 className="text-lg font-semibold mb-3">Rendimiento General</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    {[
+                        { label: 'Partidas Jugadas', value: userDetailData.totals.partidas },
+                        { label: 'Victorias', value: userDetailData.totals.victorias, color: 'text-green-500' },
+                        { label: 'Derrotas', value: userDetailData.totals.derrotas, color: 'text-red-500' },
+                        { label: 'Tasa Victorias', value: `${userDetailData.totals.winRate}%` },
+                    ].map(item => (
+                        <div key={item.label} className={`p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}`}>
+                            <p className={`text-2xl font-bold ${item.color || ''}`}>{item.value}</p>
+                            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{item.label}</p>
+                        </div>
+                    ))}
+                     <div className={`p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'} col-span-2 md:col-span-2`}>
+                        <p className="text-xl font-semibold">{formatTotalDuration(userDetailData.totals.totalTimePlayedSeconds)}</p>
+                        <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tiempo Total Jugado</p>
+                    </div>
+                    <div className={`p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'} col-span-2 md:col-span-2`}>
+                         <p className="text-xl font-semibold">{formatTotalDuration(userDetailData.totals.avgTimePerGameSeconds)}</p>
+                         <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tiempo Medio / Partida</p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Sección Charts (como en Dashboard.jsx) */}
+                <section className="grid md:grid-cols-2 gap-6">
+                    {/* Win Rate Pie Chart */}
+                    <div className={`p-4 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}`}>
+                        <h3 className="text-md font-semibold mb-2 text-center">Victorias vs Derrotas</h3>
+                        {(userDetailData.totals.partidas > 0) ? (
+                            <ResponsiveContainer width="100%" height={200}>
+                                <PieChart>
+                                    <Pie 
+                                        data={[
+                                            { name: 'Victorias', value: userDetailData.totals.victorias },
+                                            { name: 'Derrotas', value: userDetailData.totals.derrotas },
+                                        ]}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        fontSize={12}
+                                    >
+                                        <Cell key={`cell-0`} fill={darkMode ? "#4ade80" : "#16a34a"} />
+                                        <Cell key={`cell-1`} fill={darkMode ? "#f87171" : "#dc2626"} />
+                                    </Pie>
+                                    <Tooltip formatter={(value, name) => [value, name]} contentStyle={{ backgroundColor: darkMode ? '#333' : '#fff', border: 'none', borderRadius: '8px'}}/>
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <p className="text-sm text-gray-500 text-center pt-10">No hay datos suficientes.</p>
+                        )}
+                    </div>
+
+                    {/* Daily Activity Bar Chart */}
+                    <div className={`p-4 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}`}>
+                         <h3 className="text-md font-semibold mb-2 text-center">Actividad Diaria (Victorias/Derrotas)</h3>
+                         {(userDetailData.dailyActivity && userDetailData.dailyActivity.length > 0) ? (
+                            <ResponsiveContainer width="100%" height={200}>
+                                <BarChart data={userDetailData.dailyActivity} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#444' : '#ccc'} opacity={0.5}/>
+                                    <XAxis dataKey="day" stroke={darkMode ? '#999' : '#666'} tick={{ fontSize: 10 }}/>
+                                    <YAxis stroke={darkMode ? '#999' : '#666'} tick={{ fontSize: 10 }} allowDecimals={false} />
+                                    <Tooltip contentStyle={{ backgroundColor: darkMode ? '#333' : '#fff', border: 'none', borderRadius: '8px'}} itemStyle={{ color: darkMode ? '#ddd' : '#333' }} labelStyle={{ fontWeight: 'bold'}}/>
+                                    <Legend wrapperStyle={{ fontSize: '10px'}} />
+                                    <Bar dataKey="victorias" fill={darkMode ? "#4ade80" : "#16a34a"} name="Victorias" />
+                                    <Bar dataKey="derrotas" fill={darkMode ? "#f87171" : "#dc2626"} name="Derrotas" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                             <p className="text-sm text-gray-500 text-center pt-10">No hay actividad reciente.</p>
+                        )}
+                    </div>
+                </section>
+                
+                {/* Sección Historial Reciente (como en Dashboard.jsx) */}
+                <section>
+                     <h3 className="text-lg font-semibold mb-3">Historial Reciente (Últimas Simuladas)</h3>
+                     {(userDetailData.history && userDetailData.history.length > 0) ? (
+                        <div className={`rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'} overflow-hidden max-h-60 overflow-y-auto`}> 
+                            <ul className={`divide-y ${darkMode ? 'divide-gray-700/50' : 'divide-gray-200/50'}`}>
+                                {userDetailData.history.map((game, index) => (
+                                    <li key={index} className="flex justify-between items-center text-sm p-3">
+                                        <span className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{game.date}</span>
+                                        <span className={`font-medium ${game.outcome === 'victory' ? (darkMode ? 'text-green-400' : 'text-green-600') : (darkMode ? 'text-red-400' : 'text-red-600')}`}>
+                                            {game.outcome === 'victory' ? '🏆 Victoria' : '💀 Derrota'}
+                                        </span>
+                                        <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            {game.time} 
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                     ) : (
+                         <p className="text-sm text-gray-500 text-center py-4">No hay historial de partidas.</p>
+                     )}
+                </section>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {/* --- FIN MODAL --- */}
     </div>
   );
 };

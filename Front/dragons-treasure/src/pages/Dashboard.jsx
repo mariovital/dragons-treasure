@@ -117,6 +117,37 @@ const formatTotalDuration = (totalSeconds) => {
 };
 // --- End Helpers ---
 
+// --- Importar TODOS los Stickers ---
+import sticker01 from '../assets/images/Stickers/Sticker-01.png';
+import sticker02 from '../assets/images/Stickers/Sticker-02.png';
+import sticker03 from '../assets/images/Stickers/Sticker-03.png';
+import sticker04 from '../assets/images/Stickers/Sticker-04.png';
+import sticker05 from '../assets/images/Stickers/Sticker-05.png';
+import sticker06 from '../assets/images/Stickers/Sticker-06.png';
+import sticker07 from '../assets/images/Stickers/Sticker-07.png';
+import sticker08 from '../assets/images/Stickers/Sticker-08.png';
+import sticker09 from '../assets/images/Stickers/Sticker-09.png';
+import sticker10 from '../assets/images/Stickers/Sticker-10.png';
+import sticker11 from '../assets/images/Stickers/Sticker-11.png';
+import sticker12 from '../assets/images/Stickers/Sticker-12.png';
+import sticker13 from '../assets/images/Stickers/Sticker-13.png';
+import sticker14 from '../assets/images/Stickers/Sticker-14.png';
+import sticker15 from '../assets/images/Stickers/Sticker-15.png';
+import sticker16 from '../assets/images/Stickers/Sticker-16.png';
+import sticker17 from '../assets/images/Stickers/Sticker-17.png';
+import sticker18 from '../assets/images/Stickers/Sticker-18.png';
+import sticker19 from '../assets/images/Stickers/Sticker-19.png';
+import sticker20 from '../assets/images/Stickers/Sticker-20.png';
+
+// --- Objeto para acceder a los stickers por ID ---
+const stickerImages = {
+  1: sticker01, 2: sticker02, 3: sticker03, 4: sticker04, 5: sticker05,
+  6: sticker06, 7: sticker07, 8: sticker08, 9: sticker09, 10: sticker10,
+  11: sticker11, 12: sticker12, 13: sticker13, 14: sticker14, 15: sticker15,
+  16: sticker16, 17: sticker17, 18: sticker18, 19: sticker19, 20: sticker20,
+};
+// ----------------------------------------------------
+
 const Dashboard = () => {
   const { darkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
@@ -134,6 +165,7 @@ const Dashboard = () => {
   const [errorRecent, setErrorRecent] = useState(null);
   const [errorLeaderboard, setErrorLeaderboard] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
+  const [stickerData, setStickerData] = useState(null); // Ya existe
 
   // --- NEW State for Time Played Chart ---
   const [timePlayedChartData, setTimePlayedChartData] = useState([]);
@@ -142,7 +174,6 @@ const Dashboard = () => {
 
   // --- NEW State for Coins and Sticker ---
   const [coinsData, setCoinsData] = useState(null); // { coins: number } | null
-  const [stickerData, setStickerData] = useState(null); // { sticker: { name, description, image } | null } | null
   const [loadingCoins, setLoadingCoins] = useState(true);
   const [loadingSticker, setLoadingSticker] = useState(true);
   const [errorCoins, setErrorCoins] = useState(null);
@@ -166,6 +197,12 @@ const Dashboard = () => {
     elemento5, elemento6, elemento7, elemento8,
     elemento9, elemento10, elemento11
   ];
+
+  // --- NUEVOS ESTADOS PARA AVATAR ---
+  const [unlockedStickerIds, setUnlockedStickerIds] = useState([]);
+  const [selectedProfileStickerId, setSelectedProfileStickerId] = useState(null);
+  const [currentAvatar, setCurrentAvatar] = useState('🐭'); // Default avatar
+  // ---------------------------------
 
   // --- Refactored Data Fetching Logic --- 
   const fetchDashboardData = useCallback(async () => {
@@ -769,6 +806,69 @@ const Dashboard = () => {
   }, [activeTab, userInfo, fetchUserStats]);
   // --- End NEW Effect 5 ---
 
+  // --- NUEVO Effect: Derivar stickers desbloqueados y establecer avatar inicial --- MODIFICADO para cargar desde localStorage
+  useEffect(() => {
+    let initialAvatar = '🐉'; // Default (usando tu cambio)
+    let initialSelectedId = null;
+    let unlockedIds = [];
+
+    // Derivar stickers desbloqueados de stickerData
+    const lastStickerId = stickerData?.sticker?.id;
+    if (lastStickerId && typeof lastStickerId === 'number' && lastStickerId > 0) {
+      unlockedIds = Array.from({ length: lastStickerId }, (_, i) => i + 1);
+      setUnlockedStickerIds(unlockedIds);
+      console.log("[Avatar Effect] Unlocked Sticker IDs:", unlockedIds);
+
+      // Cargar preferencia guardada de localStorage DESPUÉS de saber los desbloqueados
+      const savedStickerId = localStorage.getItem('preferredStickerId'); 
+      if (savedStickerId && unlockedIds.includes(parseInt(savedStickerId))) {
+          const preferredId = parseInt(savedStickerId);
+          initialSelectedId = preferredId; // Guardar para estado
+          initialAvatar = stickerImages[preferredId] || '🐉'; // Establecer la imagen guardada
+          console.log(`[Avatar Effect] Loaded preferred sticker ID ${preferredId} from localStorage.`);
+      }
+      // Opcional: Si no hay preferencia guardada, ¿establecer el último como default?
+      // else {
+      //    initialSelectedId = lastStickerId;
+      //    initialAvatar = stickerImages[lastStickerId] || '🐉';
+      // }
+
+    } else {
+      setUnlockedStickerIds([]); // Asegurar que esté vacío si no hay stickers
+      localStorage.removeItem('preferredStickerId'); // Limpiar si ya no hay stickers desbloqueados
+    }
+
+    // Establecer estados iniciales
+    setSelectedProfileStickerId(initialSelectedId);
+    setCurrentAvatar(initialAvatar); 
+
+  }, [stickerData]); // Depende de stickerData
+
+  // --- NUEVO Effect: Actualizar avatar cuando cambia la selección --- MODIFICADO para guardar en localStorage
+  useEffect(() => {
+    if (selectedProfileStickerId && stickerImages[selectedProfileStickerId]) {
+        const avatarSrc = stickerImages[selectedProfileStickerId];
+        setCurrentAvatar(avatarSrc);
+        // Guardar preferencia en localStorage
+        localStorage.setItem('preferredStickerId', selectedProfileStickerId);
+        console.log(`[Avatar Effect] Avatar set to Sticker ID: ${selectedProfileStickerId} and saved preference.`);
+        // TODO (Futuro): Llamar a API para guardar en backend: saveAvatarPreference(selectedProfileStickerId);
+    } else {
+        // Si se deselecciona o el ID no es válido (ej. al inicio es null)
+        // No eliminamos necesariamente de localStorage aquí, solo establecemos el avatar default.
+        // Se limpia localStorage en el efecto anterior si los stickers desaparecen.
+        setCurrentAvatar('🐉'); 
+        // Si selectedProfileStickerId es explícitamente null y no solo al inicio:
+        if (selectedProfileStickerId === null) {
+            localStorage.removeItem('preferredStickerId');
+            console.log(`[Avatar Effect] Avatar set to default (🐉) and removed preference.`);
+        } else {
+            console.log(`[Avatar Effect] Avatar set to default (🐉), no valid sticker ID selected.`);
+        }
+    }
+  }, [selectedProfileStickerId]);
+  // ------------------------------------------------------------------
+
   // Sample data for the time played chart (keep for now, replace if needed)
   const timePlayedData = [
     { day: 'Lunes', hours: 0.5 },
@@ -896,15 +996,27 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* User welcome section - Use userInfo state */}
+            {/* User welcome section - MODIFICADO para Avatar */}
             <div className="mb-3 pb-3 border-b ${darkMode ? 'border-gray-700/50' : 'border-white/30'}">
               <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20 mb-1 relative">
-                  {/* Yellow circle background */}
-                <div className={`w-full h-full ${darkMode ? 'bg-primary-yellow/40' : 'bg-primary-yellow/60'} rounded-full absolute backdrop-blur-sm ${darkMode ? 'border border-gray-700/50' : 'border border-white/30'}`}></div>
-                {/* Avatar */}
-                <div className="w-full h-full flex items-center justify-center relative">
-                  <span className="text-3xl">🐭</span>
+                {/* REMOVE the separate yellow background div */}
+                {/* Avatar Container - Apply background conditionally */}
+                <div className={`w-full h-full flex items-center justify-center relative overflow-hidden rounded-full ${
+                  !(typeof currentAvatar === 'string' && currentAvatar.startsWith('/')) 
+                    ? (darkMode ? 'bg-primary-yellow/40 border border-gray-700/50' : 'bg-primary-yellow/60 border border-white/30') // Apply background for emoji
+                    : 'bg-transparent' // Transparent background for sticker image
+                }`}>
+                  {typeof currentAvatar === 'string' && currentAvatar.startsWith('/') ? (
+                    <img 
+                      src={currentAvatar} 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover" // Usar object-cover para llenar el círculo
+                      onError={(e) => { e.target.src = '' /* o una imagen fallback */; e.target.style.display='none'; setCurrentAvatar('🐉'); }} // Fallback si la imagen no carga (usa tu default actual)
+                    />
+                  ) : (
+                    <span className="text-4xl">{currentAvatar}</span> // Ajustar tamaño si es necesario
+                  )}
                 </div>
               </div>
               <div>
@@ -913,6 +1025,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+            {/* --- Fin User welcome section --- */}
 
             {/* --- NEW: Coins Display --- */}
             <div className="py-3 border-b ${darkMode ? 'border-gray-700/50' : 'border-white/30'}">
@@ -1387,10 +1500,60 @@ const Dashboard = () => {
                     ? 'bg-[#1a1a1a]/40 backdrop-blur-xl border border-gray-800/30 shadow-lg'
                     : 'bg-[#ececec]/40 backdrop-blur-xl border border-white/30 shadow-lg'
                 }`}>
-                <h1 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Configuración</h1>
-                <p className="text-sm text-gray-500">Las opciones de configuración irán aquí.</p>
-                {/* Dark Mode Toggle Example */}
-                <div className="mt-4">
+                <h1 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Configuración</h1>
+                
+                {/* --- Nueva Sección: Cambiar Avatar --- */}
+                <section className="mb-8">
+                    <h2 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Elige tu Avatar</h2>
+                    
+                    {/* Mostrar Avatar Actual */}
+                    <div className="flex items-center space-x-4 mb-6 p-4 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}">
+                         <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Avatar Actual:</p>
+                         <div className="w-16 h-16 rounded-full flex items-center justify-center overflow-hidden ${darkMode ? 'bg-primary-yellow/20 border border-primary-yellow/50' : 'bg-blue-100 border border-blue-300'}">
+                            {typeof currentAvatar === 'string' && currentAvatar.startsWith('/') ? (
+                                <img src={currentAvatar} alt="Avatar Seleccionado" className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-3xl">{currentAvatar}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Cuadrícula de Stickers Desbloqueados */}
+                    {unlockedStickerIds.length > 0 ? (
+                        <div>
+                            <h3 className={`text-md font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Stickers Disponibles:</h3>
+                            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+                                {unlockedStickerIds.map((id) => (
+                                    <button 
+                                        key={id}
+                                        onClick={() => setSelectedProfileStickerId(id)}
+                                        className={`p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${darkMode ? 'focus:ring-yellow-400' : 'focus:ring-blue-500'} ${
+                                            selectedProfileStickerId === id
+                                                ? (darkMode ? 'bg-yellow-500/40 ring-2 ring-yellow-400' : 'bg-blue-200/60 ring-2 ring-blue-500') // Estilo seleccionado
+                                                : (darkMode ? 'bg-black/20 hover:bg-black/40' : 'bg-white/30 hover:bg-white/60') // Estilo normal
+                                        }`}
+                                    >
+                                        <img 
+                                            src={stickerImages[id]}
+                                            alt={`Sticker ${id}`}
+                                            className="w-full h-full object-contain aspect-square" // Mantener relación de aspecto
+                                            loading="lazy"
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <p className={`text-sm text-center py-4 ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>No tienes stickers desbloqueados para elegir.</p>
+                    )}
+                </section>
+                {/* --- Fin Sección Cambiar Avatar --- */}
+                
+                <hr className={`my-6 ${darkMode ? 'border-gray-700/50' : 'border-gray-300/50'}`} />
+
+                {/* Dark Mode Toggle Example (Existente) */}
+                <div>
+                    <h2 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Tema Visual</h2>
                     <button
                       onClick={toggleDarkMode}
                       className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${darkMode ? 'bg-primary-yellow text-gray-900 hover:bg-yellow-400' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
@@ -1398,9 +1561,11 @@ const Dashboard = () => {
                       <img src={darkMode ? lightModeIcon : darkModeIcon} alt="Toggle Theme" className="w-4 h-4" />
                       <span>Cambiar a Modo {darkMode ? 'Claro' : 'Oscuro'}</span>
                     </button>
-            </div>
-          </div>
+                </div>
+
+             </div>
           )}
+          {/* --- Fin Contenido Configuración --- */}
 
         {/* END OF MAIN CONTENT AREA DIV */}
         </div>
