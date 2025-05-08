@@ -143,5 +143,56 @@ const syncCoinsController = async (req, res) => {
     }
 };
 
+// --- MODIFICADA: Actualizar Preferencia de Avatar (Sticker ID) con Logs Detallados ---
+const updateAvatarPreference = async (req, res, next) => {
+    const userId = req.userId; // Obtenido del middleware verifyTokenPresence
+    const stickerIdFromRequest = req.body.stickerId; // ID del sticker enviado desde el frontend
+
+    // Log inicial de la solicitud
+    console.log(`[BEGIN updateAvatarPreference] Received request for userId: ${userId}, stickerIdFromRequest: ${stickerIdFromRequest} (type: ${typeof stickerIdFromRequest})`);
+
+    // Validación del stickerId: debe ser un número entero positivo o null.
+    if (stickerIdFromRequest !== null && 
+        (!Number.isInteger(stickerIdFromRequest) || stickerIdFromRequest <= 0)) {
+        console.error(`[VALIDATION FAIL updateAvatarPreference] Invalid stickerId: ${stickerIdFromRequest}. Must be a positive integer or null.`);
+        return res.status(400).json({ success: false, message: 'El stickerId debe ser un número entero positivo o null.' });
+    }
+
+    const stickerIdToSave = stickerIdFromRequest; // El valor que realmente se intentará guardar
+
+    console.log(`[PRE-DB updateAvatarPreference] Attempting to update DB for userId: ${userId} with avatar_sticker_id = ${stickerIdToSave}`);
+
+    try {
+        const [result] = await pool.query(
+            'UPDATE usuario SET avatar_sticker_id = ? WHERE id = ?',
+            [stickerIdToSave, userId]
+        );
+
+        // Log detallado del resultado de la consulta
+        console.log(`[POST-DB updateAvatarPreference] Query executed for userId: ${userId}. Result:`, JSON.stringify(result));
+
+        if (result.affectedRows > 0) {
+            console.log(`[SUCCESS updateAvatarPreference] Successfully updated avatar for userId: ${userId} to stickerId: ${stickerIdToSave}. Rows affected: ${result.affectedRows}.`);
+            res.json({ success: true, message: 'Preferencia de avatar actualizada.', newStickerId: stickerIdToSave });
+        } else {
+            // Si no hay filas afectadas, verificar si el usuario existe.
+            // Si existe, es probable que el valor ya fuera el que se intentó establecer.
+            console.warn(`[INFO updateAvatarPreference] Zero rows affected for userId: ${userId} with stickerId: ${stickerIdToSave}. Checking user existence.`);
+            const [userCheck] = await pool.query('SELECT id FROM usuario WHERE id = ?', [userId]);
+            if (userCheck.length === 0) {
+                console.error(`[NOT FOUND updateAvatarPreference] User with ID ${userId} not found during update attempt.`);
+                return res.status(404).json({ success: false, message: 'Usuario no encontrado para actualizar preferencia.' });
+            }
+            // Si el usuario existe pero no hubo filas afectadas, el valor probablemente ya estaba establecido.
+            console.log(`[NO CHANGE updateAvatarPreference] User ${userId} exists, 0 rows affected likely means value was already ${stickerIdToSave}. Treating as success.`);
+            res.json({ success: true, message: 'Preferencia de avatar sin cambios (valor ya establecido).', newStickerId: stickerIdToSave });
+        }
+    } catch (error) {
+        console.error(`[DB ERROR updateAvatarPreference] Database error for userId: ${userId}, stickerIdToSave: ${stickerIdToSave}:`, error);
+        next(error); // Pasar al manejador de errores global
+    }
+};
+// --- FIN NUEVA FUNCIÓN ---
+
 // Export existing functions AND the new one
-export { getUser, createOrGetUser, syncCoinsController };
+export { getUser, createOrGetUser, syncCoinsController, updateAvatarPreference };

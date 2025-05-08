@@ -118,26 +118,26 @@ const formatTotalDuration = (totalSeconds) => {
 // --- End Helpers ---
 
 // --- Importar TODOS los Stickers ---
-import sticker01 from '../assets/images/Stickers/Sticker-01.png';
-import sticker02 from '../assets/images/Stickers/Sticker-02.png';
-import sticker03 from '../assets/images/Stickers/Sticker-03.png';
-import sticker04 from '../assets/images/Stickers/Sticker-04.png';
-import sticker05 from '../assets/images/Stickers/Sticker-05.png';
-import sticker06 from '../assets/images/Stickers/Sticker-06.png';
-import sticker07 from '../assets/images/Stickers/Sticker-07.png';
-import sticker08 from '../assets/images/Stickers/Sticker-08.png';
-import sticker09 from '../assets/images/Stickers/Sticker-09.png';
-import sticker10 from '../assets/images/Stickers/Sticker-10.png';
-import sticker11 from '../assets/images/Stickers/Sticker-11.png';
-import sticker12 from '../assets/images/Stickers/Sticker-12.png';
-import sticker13 from '../assets/images/Stickers/Sticker-13.png';
-import sticker14 from '../assets/images/Stickers/Sticker-14.png';
-import sticker15 from '../assets/images/Stickers/Sticker-15.png';
-import sticker16 from '../assets/images/Stickers/Sticker-16.png';
-import sticker17 from '../assets/images/Stickers/Sticker-17.png';
-import sticker18 from '../assets/images/Stickers/Sticker-18.png';
-import sticker19 from '../assets/images/Stickers/Sticker-19.png';
-import sticker20 from '../assets/images/Stickers/Sticker-20.png';
+import sticker01 from '../assets/images 2/Stickers/Sticker-01.png'; // Corregido a images 2/Stickers/
+import sticker02 from '../assets/images 2/Stickers/Sticker-02.png'; // Corregido a images 2/Stickers/
+import sticker03 from '../assets/images 2/Stickers/Sticker-03.png'; // Corregido a images 2/Stickers/
+import sticker04 from '../assets/images 2/Stickers/Sticker-04.png'; // Corregido a images 2/Stickers/
+import sticker05 from '../assets/images 2/Stickers/Sticker-05.png'; // Corregido a images 2/Stickers/
+import sticker06 from '../assets/images 2/Stickers/Sticker-06.png'; // Corregido a images 2/Stickers/
+import sticker07 from '../assets/images 2/Stickers/Sticker-07.png'; // Corregido a images 2/Stickers/
+import sticker08 from '../assets/images 2/Stickers/Sticker-08.png'; // Corregido a images 2/Stickers/
+import sticker09 from '../assets/images 2/Stickers/Sticker-09.png'; // Corregido a images 2/Stickers/
+import sticker10 from '../assets/images 2/Stickers/Sticker-10.png'; // Corregido a images 2/Stickers/
+import sticker11 from '../assets/images 2/Stickers/Sticker-11.png'; // Corregido a images 2/Stickers/
+import sticker12 from '../assets/images 2/Stickers/Sticker-12.png'; // Corregido a images 2/Stickers/
+import sticker13 from '../assets/images 2/Stickers/Sticker-13.png'; // Corregido a images 2/Stickers/
+import sticker14 from '../assets/images 2/Stickers/Sticker-14.png'; // Corregido a images 2/Stickers/
+import sticker15 from '../assets/images 2/Stickers/Sticker-15.png'; // Corregido a images 2/Stickers/
+import sticker16 from '../assets/images 2/Stickers/Sticker-16.png'; // Corregido a images 2/Stickers/
+import sticker17 from '../assets/images 2/Stickers/Sticker-17.png'; // Corregido a images 2/Stickers/
+import sticker18 from '../assets/images 2/Stickers/Sticker-18.png'; // Corregido a images 2/Stickers/
+import sticker19 from '../assets/images 2/Stickers/Sticker-19.png'; // Corregido a images 2/Stickers/
+import sticker20 from '../assets/images 2/Stickers/Sticker-20.png'; // Corregido a images 2/Stickers/
 
 // --- Objeto para acceder a los stickers por ID ---
 const stickerImages = {
@@ -147,6 +147,10 @@ const stickerImages = {
   16: sticker16, 17: sticker17, 18: sticker18, 19: sticker19, 20: sticker20,
 };
 // ----------------------------------------------------
+
+// --- Importar Imagen de Avatar por Defecto ---
+import defaultAvatarImage from '../assets/images 2/Profile/Draco-Spray.png'; // Corregido a images 2/Profile/
+// --------------------------------------------
 
 const Dashboard = () => {
   const { darkMode, toggleDarkMode } = useTheme();
@@ -201,7 +205,7 @@ const Dashboard = () => {
   // --- NUEVOS ESTADOS PARA AVATAR ---
   const [unlockedStickerIds, setUnlockedStickerIds] = useState([]);
   const [selectedProfileStickerId, setSelectedProfileStickerId] = useState(null);
-  const [currentAvatar, setCurrentAvatar] = useState('🐭'); // Default avatar
+  const [currentAvatar, setCurrentAvatar] = useState(defaultAvatarImage); // <-- Usar imagen importada como default
   // ---------------------------------
 
   // --- Refactored Data Fetching Logic --- 
@@ -806,79 +810,126 @@ const Dashboard = () => {
   }, [activeTab, userInfo, fetchUserStats]);
   // --- End NEW Effect 5 ---
 
-  // --- NUEVO Effect: Derivar stickers desbloqueados y establecer avatar inicial --- MODIFICADO para cargar desde localStorage
+  // --- NUEVO Effect: Derivar stickers desbloqueados y establecer avatar inicial --- MODIFICADO para usar imagen default
   useEffect(() => {
-    let initialAvatar = '🐉'; // Default (usando tu cambio)
+    let initialAvatar = defaultAvatarImage; // <-- Usar imagen importada como default
     let initialSelectedId = null;
     let unlockedIds = [];
 
-    // Derivar stickers desbloqueados de stickerData
+    // 1. Derivar stickers desbloqueados (igual que antes)
     const lastStickerId = stickerData?.sticker?.id;
     if (lastStickerId && typeof lastStickerId === 'number' && lastStickerId > 0) {
       unlockedIds = Array.from({ length: lastStickerId }, (_, i) => i + 1);
       setUnlockedStickerIds(unlockedIds);
       console.log("[Avatar Effect] Unlocked Sticker IDs:", unlockedIds);
-
-      // Cargar preferencia guardada de localStorage DESPUÉS de saber los desbloqueados
-      const savedStickerId = localStorage.getItem('preferredStickerId'); 
-      if (savedStickerId && unlockedIds.includes(parseInt(savedStickerId))) {
-          const preferredId = parseInt(savedStickerId);
-          initialSelectedId = preferredId; // Guardar para estado
-          initialAvatar = stickerImages[preferredId] || '🐉'; // Establecer la imagen guardada
-          console.log(`[Avatar Effect] Loaded preferred sticker ID ${preferredId} from localStorage.`);
-      }
-      // Opcional: Si no hay preferencia guardada, ¿establecer el último como default?
-      // else {
-      //    initialSelectedId = lastStickerId;
-      //    initialAvatar = stickerImages[lastStickerId] || '🐉';
-      // }
-
     } else {
-      setUnlockedStickerIds([]); // Asegurar que esté vacío si no hay stickers
-      localStorage.removeItem('preferredStickerId'); // Limpiar si ya no hay stickers desbloqueados
+      setUnlockedStickerIds([]);
     }
 
-    // Establecer estados iniciales
-    setSelectedProfileStickerId(initialSelectedId);
-    setCurrentAvatar(initialAvatar); 
-
-  }, [stickerData]); // Depende de stickerData
-
-  // --- NUEVO Effect: Actualizar avatar cuando cambia la selección --- MODIFICADO para guardar en localStorage
-  useEffect(() => {
-    if (selectedProfileStickerId && stickerImages[selectedProfileStickerId]) {
-        const avatarSrc = stickerImages[selectedProfileStickerId];
-        setCurrentAvatar(avatarSrc);
-        // Guardar preferencia en localStorage
-        localStorage.setItem('preferredStickerId', selectedProfileStickerId);
-        console.log(`[Avatar Effect] Avatar set to Sticker ID: ${selectedProfileStickerId} and saved preference.`);
-        // TODO (Futuro): Llamar a API para guardar en backend: saveAvatarPreference(selectedProfileStickerId);
-    } else {
-        // Si se deselecciona o el ID no es válido (ej. al inicio es null)
-        // No eliminamos necesariamente de localStorage aquí, solo establecemos el avatar default.
-        // Se limpia localStorage en el efecto anterior si los stickers desaparecen.
-        setCurrentAvatar('🐉'); 
-        // Si selectedProfileStickerId es explícitamente null y no solo al inicio:
-        if (selectedProfileStickerId === null) {
-            localStorage.removeItem('preferredStickerId');
-            console.log(`[Avatar Effect] Avatar set to default (🐉) and removed preference.`);
+    // 2. Cargar preferencia guardada desde userInfo (SOLO si userInfo está cargado y tenemos stickers desbloqueados)
+    if (userInfo && unlockedIds.length > 0) {
+        const preferredId = userInfo.avatar_sticker_id; // Leer de userInfo
+        if (preferredId && unlockedIds.includes(preferredId)) { // Verificar si es válido y desbloqueado
+            initialSelectedId = preferredId; 
+            initialAvatar = stickerImages[preferredId] || defaultAvatarImage; // <-- Usar imagen importada como fallback
+            console.log(`[Avatar Effect] Loaded preferred sticker ID ${preferredId} from userInfo.`);
         } else {
-            console.log(`[Avatar Effect] Avatar set to default (🐉), no valid sticker ID selected.`);
+            console.log(`[Avatar Effect] No valid preferred sticker ID found in userInfo or sticker not unlocked.`);
         }
+    } else {
+        console.log("[Avatar Effect] Cannot check userInfo preference yet (userInfo not loaded or no stickers unlocked).");
     }
+
+    // 3. Establecer estados iniciales
+    if (selectedProfileStickerId !== initialSelectedId) {
+        setSelectedProfileStickerId(initialSelectedId);
+    }
+    if (currentAvatar !== initialAvatar) {
+      setCurrentAvatar(initialAvatar);
+    }
+
+  }, [stickerData, userInfo]); 
+
+  // --- Función para llamar a la API y guardar preferencia ---
+  const saveAvatarPreference = async (stickerId) => {
+    const token = localStorage.getItem('token'); // Nuestro JWT
+    if (!token) {
+        console.error("[Save Avatar] No token found.");
+        // Podrías mostrar un error al usuario aquí
+        return; 
+    }
+    console.log(`[Save Avatar] Attempting to save preference: Sticker ID = ${stickerId}`);
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/avatar`, { // Usar la ruta PUT /api/avatar
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ stickerId: stickerId }) // Enviar el ID en el cuerpo
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Failed to save avatar preference');
+        }
+
+        console.log("[Save Avatar] Preference saved successfully:", data);
+        
+        // 1. Actualizar el estado userInfo localmente (Ya lo hacemos)
+        setUserInfo(prevUserInfo => {
+            if (!prevUserInfo) return null; // Manejar caso donde userInfo aún no se ha cargado
+            // Crear un nuevo objeto para asegurar la actualización del estado
+            return { ...prevUserInfo, avatar_sticker_id: stickerId }; 
+        });
+
+        // --- 2. ¡AÑADIR! Actualizar también localStorage['userData'] ---
+        try {
+            const storedUserData = localStorage.getItem('userData');
+            if (storedUserData) {
+                const parsedData = JSON.parse(storedUserData);
+                // Crear un nuevo objeto con el ID de sticker actualizado
+                const updatedData = { ...parsedData, avatar_sticker_id: stickerId };
+                localStorage.setItem('userData', JSON.stringify(updatedData));
+                console.log("[Save Avatar] Updated localStorage['userData'] as well.");
+            } else {
+                console.warn("[Save Avatar] Could not find 'userData' in localStorage to update.");
+            }
+        } catch (e) {
+            console.error("[Save Avatar] Failed to update localStorage['userData']:", e);
+        }
+        // --- Fin actualización localStorage ---
+
+    } catch (error) {
+        console.error("[Save Avatar] Error saving preference:", error);
+        // Mostrar un mensaje de error al usuario sería bueno aquí
+    }
+  };
+
+  // --- NUEVO Effect: Actualizar avatar Y llamar a la API cuando cambia la selección --- MODIFICADO para usar imagen default
+  useEffect(() => {
+    if (selectedProfileStickerId !== null && stickerImages[selectedProfileStickerId]) {
+        const avatarSrc = stickerImages[selectedProfileStickerId];
+        if (currentAvatar !== avatarSrc) { 
+          setCurrentAvatar(avatarSrc);
+        }
+        saveAvatarPreference(selectedProfileStickerId);
+        console.log(`[Avatar Selection Effect] Avatar set to Sticker ID: ${selectedProfileStickerId} and API call initiated.`);
+    } else if (selectedProfileStickerId === null) {
+        // Si el ID se establece explícitamente en null
+        if (currentAvatar !== defaultAvatarImage) { // <-- Usar imagen importada como default
+          setCurrentAvatar(defaultAvatarImage);
+        }
+        saveAvatarPreference(null); 
+        console.log(`[Avatar Selection Effect] Avatar set to default (image) and saving null preference.`);
+    }
+
   }, [selectedProfileStickerId]);
   // ------------------------------------------------------------------
 
   // Sample data for the time played chart (keep for now, replace if needed)
-  const timePlayedData = [
-    { day: 'Lunes', hours: 0.5 },
-    { day: 'martes', hours: 2.5 },
-    { day: 'miércoles', hours: 1.5 },
-    { day: 'jueves', hours: 0.5 },
-    { day: 'viernes', hours: 4.8 },
-    { day: 'sábado', hours: 2.5 },
-    { day: 'domingo', hours: 7 },
-  ];
+ 
 
   // --- Helper to get medal icon based on rank ---
   const getMedalIcon = (rank) => {
@@ -996,27 +1047,19 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* User welcome section - MODIFICADO para Avatar */}
+            {/* User welcome section - MODIFICADO para Avatar Imagen */}
             <div className="mb-3 pb-3 border-b ${darkMode ? 'border-gray-700/50' : 'border-white/30'}">
               <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20 mb-1 relative">
-                {/* REMOVE the separate yellow background div */}
-                {/* Avatar Container - Apply background conditionally */}
-                <div className={`w-full h-full flex items-center justify-center relative overflow-hidden rounded-full ${
-                  !(typeof currentAvatar === 'string' && currentAvatar.startsWith('/')) 
-                    ? (darkMode ? 'bg-primary-yellow/40 border border-gray-700/50' : 'bg-primary-yellow/60 border border-white/30') // Apply background for emoji
-                    : 'bg-transparent' // Transparent background for sticker image
-                }`}>
-                  {typeof currentAvatar === 'string' && currentAvatar.startsWith('/') ? (
-                    <img 
-                      src={currentAvatar} 
-                      alt="Avatar" 
-                      className="w-full h-full object-cover" // Usar object-cover para llenar el círculo
-                      onError={(e) => { e.target.src = '' /* o una imagen fallback */; e.target.style.display='none'; setCurrentAvatar('🐉'); }} // Fallback si la imagen no carga (usa tu default actual)
-                    />
-                  ) : (
-                    <span className="text-4xl">{currentAvatar}</span> // Ajustar tamaño si es necesario
-                  )}
+                {/* Avatar Container - Sin fondo si es imagen */}
+                <div className={`w-full h-full flex items-center justify-center relative overflow-hidden rounded-full bg-transparent`}> 
+                  {/* Siempre mostrar <img> ahora que el default es una imagen */}
+                  <img 
+                    src={currentAvatar} 
+                    alt="Avatar" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.target.src = defaultAvatarImage; }} // Fallback simple a la imagen default si hay error
+                  />
                 </div>
               </div>
               <div>
@@ -1508,13 +1551,10 @@ const Dashboard = () => {
                     
                     {/* Mostrar Avatar Actual */}
                     <div className="flex items-center space-x-4 mb-6 p-4 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'}">
-                         <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Avatar Actual:</p>
-                         <div className="w-16 h-16 rounded-full flex items-center justify-center overflow-hidden ${darkMode ? 'bg-primary-yellow/20 border border-primary-yellow/50' : 'bg-blue-100 border border-blue-300'}">
-                            {typeof currentAvatar === 'string' && currentAvatar.startsWith('/') ? (
-                                <img src={currentAvatar} alt="Avatar Seleccionado" className="w-full h-full object-cover" />
-                            ) : (
-                                <span className="text-3xl">{currentAvatar}</span>
-                            )}
+                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Avatar Actual:</p>
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center overflow-hidden border ${darkMode ? 'border-gray-600' : 'border-gray-300'}">
+                            {/* Siempre mostrar <img> */}
+                            <img src={currentAvatar} alt="Avatar Seleccionado" className="w-full h-full object-cover" />
                         </div>
                     </div>
 

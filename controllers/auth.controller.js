@@ -179,8 +179,8 @@ export const loginUser = async (req, res, next) => {
             const localUserName = aulifyData.name; 
             const localUserGamertag = localUserName ? localUserName.split(' ')[0] : 'User'; 
             
-            // --- MODIFICADO: Especificar columnas y añadir role ---
-            const selectColumns = 'id, email, name, gamertag, role, nivel, progreso, monedas'; 
+            // --- MODIFICADO: Especificar columnas y añadir role y avatar_sticker_id ---
+            const selectColumns = 'id, email, name, gamertag, role, nivel, progreso, monedas, avatar_sticker_id'; 
             const [existingUsers] = await pool.query(`SELECT ${selectColumns} FROM usuario WHERE email = ?`, [localUserEmail]);
             // --- FIN MODIFICADO ---
             
@@ -225,10 +225,10 @@ export const loginUser = async (req, res, next) => {
                      updateUserStickerCount(localUserId, aulifyToken)
                  ]);
                  console.log(`[Auth Controller] Actualización de monedas/stickers post-login completada (o intentada) para usuario ${localUserId}.`);
-                 // --- MODIFICADO: Volver a cargar los datos incluyendo el ROL ---
+                 // --- MODIFICADO: Volver a cargar los datos incluyendo el ROL y avatar_sticker_id ---
                  const [refreshedUserResult] = await pool.query(`SELECT ${selectColumns} FROM usuario WHERE id = ?`, [localUserId]);
                  if (refreshedUserResult.length > 0) {
-                    localUser = refreshedUserResult[0]; // Actualizar localUser con los datos más recientes
+                    localUser = refreshedUserResult[0]; // Actualizar localUser con los datos más recientes (incluye avatar_sticker_id)
                     userRole = localUser.role; // Asegurar que userRole esté actualizado
                  } else {
                     console.error(`[Auth Controller] ¡Error crítico! No se pudo recargar el usuario ${localUserId} después de la actualización.`);
@@ -247,12 +247,17 @@ export const loginUser = async (req, res, next) => {
                 return res.status(500).json({ success: false, message: 'Error de configuración interna del servidor [JWT Secret Missing]' });
             }
             
-            // --- MODIFICADO: Añadir ROL al payload --- 
-            const tokenPayload = { userId: localUserId, role: userRole }; 
+            // --- MODIFICADO: Añadir ROL y avatar_sticker_id al payload --- 
+            const payload = {
+                userId: localUserId,
+                email: localUserEmail,
+                role: userRole, // <-- Incluir rol
+                avatarStickerId: localUser?.avatar_sticker_id // <-- Incluir ID del sticker (puede ser null)
+            };
             // --- FIN MODIFICADO ---
             
-            const options = { expiresIn: '8h' }; 
-            const ourJwtToken = jwt.sign(tokenPayload, BACKEND_JWT_SECRET, options);
+            const options = { expiresIn: '24h' }; 
+            const ourJwtToken = jwt.sign(payload, BACKEND_JWT_SECRET, options);
             console.log(`[Auth Controller] Generated our backend JWT for user ID: ${localUserId} with role: ${userRole}`);
 
             // --- Prepare user data to send to frontend ---
@@ -266,6 +271,7 @@ export const loginUser = async (req, res, next) => {
                 nivel: localUser.nivel,
                 progreso: localUser.progreso,
                 monedas: localUser.monedas, // Asegurar que esto se cargó después de sync
+                avatar_sticker_id: localUser.avatar_sticker_id, // <-- MUY IMPORTANTE AÑADIR ESTO
                 // ultimo_sticker_desbloqueado: localUser.ultimo_sticker_desbloqueado // Opcional si el frontend lo necesita
             };
             console.log("[Auth Controller] Sending user data to frontend:", userToSend);

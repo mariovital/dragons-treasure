@@ -286,7 +286,7 @@ const Login = () => {
                 <label htmlFor="password" className="block text-sm font-medium">
                   Contraseña
                 </label>
-                <a href="#" className="text-primary-yellow text-sm hover:underline">
+                <a href="https://www.aulify.mx/password/new" target="_blank" rel="noopener noreferrer" className="text-primary-yellow text-sm hover:underline">
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
@@ -321,8 +321,8 @@ const Login = () => {
           
           <div className="text-center mb-4">
             <span className="text-sm">¿Eres Nuevo? </span>
-            <a href="#" className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'} hover:underline`}>
-              Crear una Cuenta
+            <a href="https://www.aulify.mx/sign_up" target="_blank" rel="noopener noreferrer" className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'} hover:underline`}>
+              <strong>Crear una Cuenta</strong>
             </a>
           </div>
           

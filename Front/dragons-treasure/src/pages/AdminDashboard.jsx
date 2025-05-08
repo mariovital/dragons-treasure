@@ -533,7 +533,7 @@ const AdminDashboard = () => {
                 
                 {/* Sección Historial Reciente (como en Dashboard.jsx) */}
                 <section>
-                     <h3 className="text-lg font-semibold mb-3">Historial Reciente (Últimas Simuladas)</h3>
+                     <h3 className="text-lg font-semibold mb-3">Historial Reciente </h3>
                      {(userDetailData.history && userDetailData.history.length > 0) ? (
                         <div className={`rounded-lg ${darkMode ? 'bg-black/20' : 'bg-white/30'} overflow-hidden max-h-60 overflow-y-auto`}> 
                             <ul className={`divide-y ${darkMode ? 'divide-gray-700/50' : 'divide-gray-200/50'}`}>
